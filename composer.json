@@ -1,0 +1,86 @@
+{
+    "name": "truvoicer/tf-perspectives",
+    "description": "This is my package tf-perspectives",
+    "keywords": [
+        "truvoicer",
+        "laravel",
+        "tf-perspectives"
+    ],
+    "homepage": "https://github.com/truvoicer/tf-perspectives",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "truvoicer",
+            "email": "mikydxl@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "name": "tf-db-read-core",
+            "type": "vcs",
+            "url": "https://github.com/truvoicer/tf-db-read-core.git"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "illuminate/contracts": "^11.0||^12.0||^13.0",
+        "laravel/fortify": "^1.36",
+        "mongodb/laravel-mongodb": "^5.7",
+        "phpoffice/phpword": "^1.4",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "inertiajs/inertia-laravel": "^3.0",
+        "larastan/larastan": "^3.9",
+        "laravel/pint": "^1.14",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.8",
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-arch": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.0",
+        "truvoicer/tf-db-read-core": "v2.0.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "Truvoicer\\TfPerspectives\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Truvoicer\\TfPerspectives\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Truvoicer\\TfPerspectives\\TfPerspectivesServiceProvider"
+            ],
+            "aliases": {
+                "TfPerspectives": "Truvoicer\\TfPerspectives\\Facades\\TfPerspectives"
+            }
+        },
+        "branch-alias": {
+            "dev-main": "1.0-dev"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

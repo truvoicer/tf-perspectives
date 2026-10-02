@@ -1,0 +1,13 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ rootNamespace }}{{ modelClass }};
+{{ baseRepositoryImport }}
+class {{ class }} extends BaseRepository
+{
+public function __construct()
+{
+parent::__construct(new {{ modelClass }}());
+}
+}
