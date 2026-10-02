@@ -2,7 +2,7 @@
 
 namespace Truvoicer\TfPerspectives\Broadcasting;
 
-use Truvoicer\TfPerspectives\Models\User;
+use App\Models\User;
 
 class CommentChannel
 {
