@@ -3,8 +3,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Perspective;
-use App\Models\User;
+use Truvoicer\TfPerspectives\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 

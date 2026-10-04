@@ -1,7 +1,7 @@
 <?php
 // app/Models/PerspectiveEmpathy.php
 
-namespace App\Models;
+namespace Truvoicer\TfPerspectives\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

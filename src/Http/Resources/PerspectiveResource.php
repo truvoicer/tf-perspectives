@@ -1,9 +1,9 @@
 <?php
 // app/Http/Resources/PerspectiveResource.php
 
-namespace App\Http\Resources;
+namespace Truvoicer\TfPerspectives\Http\Resources;
 
-use App\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\Perspective;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

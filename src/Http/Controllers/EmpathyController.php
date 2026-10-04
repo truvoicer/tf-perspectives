@@ -1,10 +1,11 @@
 <?php
 // app/Http/Controllers/EmpathyController.php
 
-namespace App\Http\Controllers;
+namespace Truvoicer\TfPerspectives\Http\Controllers;
 
-use App\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\Perspective;
 use Illuminate\Http\Request;
+use Truvoicer\TfPerspectives\Http\Controllers\Controller;
 
 class EmpathyController extends Controller
 {
@@ -17,15 +18,10 @@ class EmpathyController extends Controller
 
         if ($existing) {
             $existing->delete();
-            $active = false;
         } else {
             $perspective->empathies()->create(['user_id' => $userId]);
-            $active = true;
         }
 
-        return response()->json([
-            'has_empathized' => $active,
-            'empathy_count'  => $perspective->empathies()->count(),
-        ]);
+        return redirect()->back();
     }
 }
