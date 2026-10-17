@@ -3,12 +3,14 @@ import { useMemo, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faShoePrints } from '@fortawesome/free-solid-svg-icons';
-import Layout from '../components/Layout';
-import { PerspectiveCard } from '../components/PerspectiveCard';
-import { Composer } from '../components/Composer';
-import { ReportModal } from '../components/ReportModal';
-import { useAuth } from '../hooks/useAuth';
-import type { Category, Perspective, PerspectiveNode } from '../types';
+import Layout from '../components/perspectives/layout';
+import { PerspectiveCard } from '../components/perspectives/perspective-card';
+import { Composer } from '../components/perspectives/composer';
+import { ComposerModal } from '../components/perspectives/composer-modal';
+import { ReportModal } from '../components/perspectives/report-modal';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
+import type { Category, Perspective, PerspectiveNode } from '../types/perspectives';
+import { route } from 'ziggy-js';
 
 interface ThreadProps {
     rootId: number;
@@ -38,6 +40,7 @@ function Branch({
     setBranchingId,
     canInteract,
     onReport,
+    onEdit,
     categories,
 }: {
     node: PerspectiveNode;
@@ -45,6 +48,7 @@ function Branch({
     setBranchingId: (id: number | null) => void;
     canInteract: boolean;
     onReport: (id: number) => void;
+    onEdit: (perspective: Perspective) => void;
     categories: Category[];
 }) {
     const isBranching = branchingId === node.id;
@@ -56,6 +60,7 @@ function Branch({
                 canInteract={canInteract}
                 onBranch={setBranchingId}
                 onReport={onReport}
+                onEdit={onEdit}
                 showBranchAction
             />
 
@@ -65,7 +70,7 @@ function Branch({
                         <div className="tf-branch-composer">
                             <Composer
                                 parentId={node.id}
-                                parentLabel={node.voice ?? node.author?.name ?? null}
+                                parentLabel={node.voice ?? node.author?.full_name ?? null}
                                 categories={categories}
                                 onCancel={() => setBranchingId(null)}
                                 onSuccess={() => setBranchingId(null)}
@@ -81,6 +86,7 @@ function Branch({
                             setBranchingId={setBranchingId}
                             canInteract={canInteract}
                             onReport={onReport}
+                            onEdit={onEdit}
                             categories={categories}
                         />
                     ))}
@@ -94,6 +100,7 @@ export default function Thread({ perspectives, categories = [] }: ThreadProps) {
     const { user } = useAuth();
     const [branchingId, setBranchingId] = useState<number | null>(null);
     const [reportId, setReportId] = useState<number | null>(null);
+    const [editing, setEditing] = useState<Perspective | null>(null);
 
     const tree = useMemo(() => buildTree(perspectives), [perspectives]);
 
@@ -101,7 +108,7 @@ export default function Thread({ perspectives, categories = [] }: ThreadProps) {
         return (
             <Layout>
                 <div className="tf-panel">
-                    <Link href="/" className="tf-back">
+                    <Link href={route('perspectives.index')} className="tf-back">
                         <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                         All perspectives
                     </Link>
@@ -113,7 +120,7 @@ export default function Thread({ perspectives, categories = [] }: ThreadProps) {
 
     return (
         <Layout>
-            <Link href="/" className="tf-back">
+            <Link href={route('perspectives.index')} className="tf-back">
                 <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                 All perspectives
             </Link>
@@ -130,6 +137,7 @@ export default function Thread({ perspectives, categories = [] }: ThreadProps) {
                     setBranchingId={setBranchingId}
                     canInteract={Boolean(user)}
                     onReport={setReportId}
+                    onEdit={setEditing}
                     categories={categories}
                 />
             </div>
@@ -138,6 +146,12 @@ export default function Thread({ perspectives, categories = [] }: ThreadProps) {
                 open={reportId !== null}
                 perspectiveId={reportId}
                 onClose={() => setReportId(null)}
+            />
+
+            <ComposerModal
+                open={editing !== null}
+                onClose={() => setEditing(null)}
+                editing={editing}
             />
         </Layout>
     );

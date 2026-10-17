@@ -1,12 +1,12 @@
 // packages/truvoicer/tf-perspectives/resources/js/pages/bookmarks.tsx
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-solid-svg-icons';
-import Layout from '../components/Layout';
-import { PerspectiveCard } from '../components/PerspectiveCard';
-import Pagination from '../components/Pagination';
-import EmptyState from '../components/EmptyState';
-import { useAuth } from '../hooks/useAuth';
-import type { Paginator, Perspective } from '../types';
+import Layout from '../components/perspectives/layout';
+import { PerspectiveCard } from '../components/perspectives/perspective-card';
+import Pagination from '../components/perspectives/pagination';
+import EmptyState from '../components/perspectives/empty-state';
+import type { Paginator, Perspective } from '../types/perspectives';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
 
 interface BookmarksProps {
     perspectives: Paginator<Perspective>;

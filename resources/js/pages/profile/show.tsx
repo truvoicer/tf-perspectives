@@ -6,13 +6,14 @@ import {
     faUserPlus, faUserCheck, faShoePrints, faLayerGroup,
     faBookmark, faCalendarDays, faLocationDot,
 } from '@fortawesome/free-solid-svg-icons';
-import Layout from '../../components/Layout';
-import { PerspectiveCard } from '../../components/PerspectiveCard';
-import Pagination from '../../components/Pagination';
-import EmptyState from '../../components/EmptyState';
-import { useAuth } from '../../hooks/useAuth';
+import Layout from '../../components/perspectives/layout';
+import { PerspectiveCard } from '../../components/perspectives/perspective-card';
+import Pagination from '../../components/perspectives/pagination';
+import EmptyState from '../../components/perspectives/empty-state';
 import { initials } from '../../lib/format';
-import type { Paginator, Perspective, User } from '../../types';
+import type { Paginator, Perspective, User } from '../../types/perspectives';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
+import { route } from 'ziggy-js';
 
 interface ProfileShowProps {
     profile: User;
@@ -39,14 +40,15 @@ export default function ProfileShow({
     const isSelf = user?.id === profile.id;
 
     const switchTab = (next: string) => {
-        router.get(`/u/${profile.handle}`, { tab: next }, {
+
+        router.get(route('perspectives.profile', { user: profile.id }), { tab: next }, {
             preserveScroll: true,
             preserveState: true,
         });
     };
 
     const toggleFollow = () => {
-        router.post(`/u/${profile.handle}/follow`, {}, {
+        router.post(route('perspectives.profile.follow', { user: profile.id }), {}, {
             preserveScroll: true,
             preserveState: true,
         });
@@ -57,12 +59,12 @@ export default function ProfileShow({
             <div className="tf-profile">
                 <div className="tf-profile-head">
                     <div className="tf-profile-avatar">
-                        {initials(profile.name)}
+                        {initials(profile.full_name)}
                     </div>
                     <div className="tf-profile-info">
-                        <h1>{profile.name}</h1>
+                        <h1>{profile.full_name}</h1>
                         <div className="tf-profile-meta">
-                            <span>@{profile.handle}</span>
+                            <span>@{profile.display_name}</span>
                             <span className="tf-dot">·</span>
                             <span>
                                 <FontAwesomeIcon icon={faCalendarDays} className="me-1" />

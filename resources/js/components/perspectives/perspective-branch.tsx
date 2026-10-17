@@ -1,7 +1,7 @@
 // resources/js/Components/PerspectiveBranch.tsx
 import type { CSSProperties } from 'react';
-import Composer from './composer';
 import type { PerspectiveNode } from '../../types/perspectives';
+import { Composer } from './composer';
 
 interface PerspectiveBranchProps {
     node: PerspectiveNode;
@@ -40,7 +40,7 @@ export default function PerspectiveBranch({
     const isBranching = branchingId === node.id;
     const hasChildren = node.children.length > 0;
 
-    const label = node.voice ?? node.author?.name ?? '?';
+    const label = node.voice ?? node.author?.full_name ?? '?';
     const initial = label.trim().charAt(0).toUpperCase();
     const depthStyle = { '--depth': node.depth } as CSSProperties;
 
@@ -50,9 +50,9 @@ export default function PerspectiveBranch({
                 <header className="card-head">
                     <span className="avatar" aria-hidden="true">{initial}</span>
                     <div className="who">
-                        <strong>{node.voice ?? node.author?.name}</strong>
+                        <strong>{node.voice ?? node.author?.full_name}</strong>
                         <span className="meta">
-                            {node.voice ? `${node.author?.name} · ` : ''}
+                            {node.voice ? `${node.author?.full_name} · ` : ''}
                             {timeAgo(node.created_at)}
                             {node.depth > 0 &&
                                 ` · ${node.depth} step${node.depth > 1 ? 's' : ''} in`}
@@ -112,7 +112,7 @@ export default function PerspectiveBranch({
                     {isBranching && (
                         <Composer
                             parentId={node.id}
-                            parentLabel={node.voice ?? node.author?.name ?? null}
+                            parentLabel={node.voice ?? node.author?.full_name ?? null}
                             onCancel={onCloseBranch}
                             onSuccess={onCloseBranch}
                         />

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Perspective extends Model
@@ -16,7 +17,7 @@ class Perspective extends Model
     /** How deep a chain of "shoes" can go before it bottoms out. */
     public const MAX_DEPTH = 5;
 
-    protected $fillable = ['user_id', 'parent_id', 'root_id', 'voice', 'body', 'depth'];
+    protected $fillable = ['user_id', 'parent_id', 'root_id', 'voice', 'body', 'depth',  'mood', 'perspective_category_id'];
 
     protected $casts = [
         'depth'     => 'integer',
@@ -56,5 +57,40 @@ class Perspective extends Model
         return $query->where(function (Builder $q) use ($rootId) {
             $q->where('id', $rootId)->orWhere('root_id', $rootId);
         });
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(PerspectiveCategory::class, 'perspective_category_id', 'id');
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'perspective_tag');
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(Reaction::class);
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function views(): HasMany
+    {
+        return $this->hasMany(PerspectiveView::class);
+    }
+
+    public function shoes(): HasMany
+    {
+        return $this->hasMany(PerspectiveShoe::class);
     }
 }

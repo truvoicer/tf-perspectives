@@ -3,10 +3,11 @@ import { Link, router } from '@inertiajs/react';
 import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
-import Layout from '../components/Layout';
-import EmptyState from '../components/EmptyState';
+import Layout from '../components/perspectives/layout';
+import EmptyState from '../components/perspectives/empty-state';
 import { timeAgo, initials } from '../lib/format';
-import type { NotificationItem } from '../types';
+import type { NotificationItem } from '../types/perspectives';
+import { route } from 'ziggy-js';
 
 interface NotificationsProps {
     notifications: {
@@ -19,11 +20,11 @@ interface NotificationsProps {
 
 export default function Notifications({ notifications }: NotificationsProps) {
     const markAll = () => {
-        router.post('/notifications/read-all', {}, { preserveScroll: true });
+        router.post(route('perspectives.notifications.read-all'), {}, { preserveScroll: true });
     };
 
     const markOne = (id: string) => {
-        router.post(`/notifications/${id}/read`, {}, { preserveScroll: true });
+        router.post(route('perspectives.notifications.read', { notification: id }), {}, { preserveScroll: true });
     };
 
     return (
@@ -57,7 +58,7 @@ export default function Notifications({ notifications }: NotificationsProps) {
                                 onClick={() => markOne(n.id)}
                             >
                                 <span className="tf-avatar tf-avatar-sm">
-                                    {initials(n.actor?.name)}
+                                    {initials(n.actor?.full_name)}
                                 </span>
                                 <div className="tf-notif-body">
                                     <Link href={`/perspectives/${n.perspective_id}`}>
@@ -67,7 +68,7 @@ export default function Notifications({ notifications }: NotificationsProps) {
                                         {timeAgo(n.created_at)}
                                     </small>
                                 </div>
-                                {!n.read_at && (
+                                {!timeAgo(n.read_at) && (
                                     <span className="tf-unread-dot" aria-hidden="true" />
                                 )}
                             </li>

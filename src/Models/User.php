@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Truvoicer\TruFetcherCore\Models\User as ModelsUser;
 
-class User extends Authenticatable
+class User extends ModelsUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 

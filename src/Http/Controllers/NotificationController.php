@@ -6,6 +6,7 @@ namespace Truvoicer\TfPerspectives\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Truvoicer\TfPerspectives\Services\CategoryService;
 
 class NotificationController extends Controller
 {
@@ -31,8 +32,9 @@ class NotificationController extends Controller
                 ];
             });
 
-        return Inertia::render('@tf-perspectives::notifications', [
+        return Inertia::render('notifications', [
             'notifications' => $paginator,
+            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 

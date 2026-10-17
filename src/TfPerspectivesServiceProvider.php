@@ -3,10 +3,16 @@
 namespace Truvoicer\TfPerspectives;
 
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route as FacadesRoute;
 use Inertia\Inertia;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Truvoicer\TfPerspectives\Commands\PruneOldPerspectiveViews;
+use Truvoicer\TfPerspectives\Models\PerspectiveShoe;
+use Truvoicer\TfPerspectives\Models\ShoeDiscussion;
+use Truvoicer\TfPerspectives\Policies\PerspectiveShoePolicy;
+use Truvoicer\TfPerspectives\Policies\ShoeDiscussionPolicy;
 use Truvoicer\TfPerspectives\Providers\EventServiceProvider;
 
 class TfPerspectivesServiceProvider extends PackageServiceProvider
@@ -20,8 +26,7 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         $package
             ->name('tf-perspectives')
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_tf_perspectives_table');
+            ->hasViews();
     }
 
     public function register(): void
@@ -81,6 +86,11 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         config()->set('tf-perspectives.filesystems.disks', $mergedDisks);
     }
 
+    public function bootPolicies(): void
+    {
+        Gate::policy(PerspectiveShoe::class, PerspectiveShoePolicy::class);
+        Gate::policy(ShoeDiscussion::class, ShoeDiscussionPolicy::class);
+    }
     /**
      * Bootstrap any package services.
      */
@@ -108,11 +118,11 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         $this->registerViewComposers();
 
         // load commands directory
-        // if ($this->app->runningInConsole()) {
-        //     $this->commands([
-
-        //     ]);
-        // }
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                PruneOldPerspectiveViews::class,
+            ]);
+        }
 
         $this->shareDataWithInertia();
         $this->bootRoutes();

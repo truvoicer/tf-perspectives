@@ -1,20 +1,19 @@
 // packages/truvoicer/tf-perspectives/resources/js/pages/feed.tsx
-import { Link, router } from '@inertiajs/react';
-import { useState } from 'react';
-import { Row, Col, Tab, Nav, Badge } from 'react-bootstrap';
+import { faChartLine, faClock, faFire, faLayerGroup, faShoePrints, faStar, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faFire, faClock, faUsers, faStar, faLayerGroup,
-    faShoePrints, faChartLine,
-} from '@fortawesome/free-solid-svg-icons';
-import Layout from '../components/Layout';
-import { PerspectiveCard } from '../components/PerspectiveCard';
-import Pagination from '../components/Pagination';
-import EmptyState from '../components/EmptyState';
-import { ReportModal } from '../components/ReportModal';
-import { useAuth } from '../hooks/useAuth';
+import { Link, router } from '@inertiajs/react';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
+import { useState } from 'react';
+import { Badge, Col, Nav, Row, Tab } from 'react-bootstrap';
+import { route } from 'ziggy-js';
+import EmptyState from '../components/perspectives/empty-state';
+import Layout from '../components/perspectives/layout';
+import Pagination from '../components/perspectives/pagination';
+import { PerspectiveCard } from '../components/perspectives/perspective-card';
+import { ReportModal } from '../components/perspectives/report-modal';
 import { categoryIcon } from '../lib/icons';
-import type { Category, Paginator, Perspective } from '../types';
+import type { Category, Paginator, Perspective } from '../types/perspectives';
+import { ComposerModal } from '../components/perspectives/composer-modal';
 
 interface FeedProps {
     perspectives: Paginator<Perspective>;
@@ -29,23 +28,23 @@ interface FeedProps {
     };
 }
 
-export default function Feed({
-    perspectives,
-    featured = [],
-    categories = [],
-    filters,
-    stats,
-}: FeedProps) {
+export default function Feed({ perspectives, featured = [], categories = [], filters, stats }: FeedProps) {
     const { user } = useAuth();
     const [reportId, setReportId] = useState<number | null>(null);
+
+    const [editing, setEditing] = useState<Perspective | null>(null);
 
     const tab = filters.tab || 'latest';
 
     const switchTab = (next: string) => {
-        router.get('/', { ...filters, tab: next }, {
-            preserveScroll: true,
-            preserveState: true,
-        });
+        router.get(
+            route('perspectives.index'),
+            { ...filters, tab: next },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            },
+        );
     };
 
     return (
@@ -53,10 +52,7 @@ export default function Feed({
             hero={
                 <div className="tf-hero-inner">
                     <h1>What does the world look like from where you stand?</h1>
-                    <p>
-                        Share a perspective. Then step into someone else's shoes and
-                        branch their view from where they stand.
-                    </p>
+                    <p>Share a perspective. Then step into someone else's shoes and branch their view from where they stand.</p>
                     {stats && (
                         <div className="tf-stats">
                             <div className="tf-stat">
@@ -137,6 +133,7 @@ export default function Feed({
                                         canInteract={Boolean(user)}
                                         truncate
                                         onReport={setReportId}
+                                        onEdit={(persp) => setEditing(persp)}
                                     />
                                 ))}
                             </div>
@@ -155,16 +152,10 @@ export default function Feed({
                             </h3>
                             <div className="tf-side-list">
                                 {featured.map((p) => (
-                                    <Link
-                                        key={p.id}
-                                        href={`/perspectives/${p.id}`}
-                                        className="tf-side-item"
-                                    >
-                                        <span className="tf-avatar tf-avatar-sm">
-                                            {(p.author?.name ?? '?').charAt(0).toUpperCase()}
-                                        </span>
+                                    <Link key={p.id} href={`/perspectives/${p.id}`} className="tf-side-item">
+                                        <span className="tf-avatar tf-avatar-sm">{(p.author?.full_name ?? '?').charAt(0).toUpperCase()}</span>
                                         <div>
-                                            <strong>{p.voice ?? p.author?.name}</strong>
+                                            <strong>{p.voice ?? p.author?.full_name}</strong>
                                             <p>{p.body.slice(0, 90)}…</p>
                                         </div>
                                     </Link>
@@ -183,7 +174,7 @@ export default function Feed({
                                 {categories.map((c) => (
                                     <Link
                                         key={c.id}
-                                        href={`/categories/${c.slug}`}
+                                        href={route('perspectives.categories.show', { slug: c.slug })}
                                         className="tf-cat-tile"
                                         style={{ ['--cat' as any]: c.color }}
                                     >
@@ -201,12 +192,8 @@ export default function Feed({
                     )}
                 </Col>
             </Row>
-
-            <ReportModal
-                open={reportId !== null}
-                perspectiveId={reportId}
-                onClose={() => setReportId(null)}
-            />
+            <ComposerModal open={editing !== null} onClose={() => setEditing(null)} editing={editing} />
+            <ReportModal open={reportId !== null} perspectiveId={reportId} onClose={() => setReportId(null)} />
         </Layout>
     );
 }

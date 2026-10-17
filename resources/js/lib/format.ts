@@ -12,9 +12,9 @@ export function timeAgo(iso: string | null): string {
     return 'just now';
 }
 
-export function initials(name: string | null | undefined): string {
-    if (!name) return '?';
-    return name
+export function initials(full_name: string | null | undefined): string {
+    if (!full_name) return '?';
+    return full_name
         .split(/\s+/)
         .slice(0, 2)
         .map((w) => w.charAt(0).toUpperCase())

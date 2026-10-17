@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Truvoicer\TfPerspectives\Http\Controllers\Concerns\TransformsPerspectives;
-use Truvoicer\TfPerspectives\Models\Category;
+use Truvoicer\TfPerspectives\Models\PerspectiveCategory;
 use Truvoicer\TfPerspectives\Models\Perspective;
 use Truvoicer\TfPerspectives\Models\Tag;
+use Truvoicer\TfPerspectives\Services\CategoryService;
 
 class SearchController extends Controller
 {
@@ -18,7 +19,7 @@ class SearchController extends Controller
 
     public function index(Request $request): Response
     {
-        $viewerId = auth()->id();
+        $viewerId = request()->user()?->id;
 
         $q        = trim((string) $request->input('q', ''));
         $tag      = trim((string) $request->input('tag', ''));
@@ -60,12 +61,9 @@ class SearchController extends Controller
         $paginator = $query->paginate(12)->withQueryString()
             ->through(fn (Perspective $p) => $this->transform($p, $viewerId));
 
-        return Inertia::render('@tf-perspectives::search', [
+        return Inertia::render('search', [
             'perspectives' => $paginator,
-            'categories'   => Category::orderBy('sort_order')
-                ->get()
-                ->map(fn (Category $c) => $this->transformCategory($c))
-                ->all(),
+            'categories'   => CategoryService::getAllCategories(),
             'popularTags'  => Tag::query()
                 ->withCount('perspectives')
                 ->orderByDesc('perspectives_count')

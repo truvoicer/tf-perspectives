@@ -1,15 +1,12 @@
 // packages/truvoicer/tf-perspectives/resources/js/components/Composer.tsx
-import { useForm } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
-import { Button, Form, Row, Col, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { faCircleInfo, faEye, faEyeSlash, faFaceSmile, faLayerGroup, faPenToSquare, faTag } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faEyeSlash, faEye, faTag, faLayerGroup, faFaceSmile,
-    faCircleInfo,
-} from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../hooks/useAuth';
-import { categoryIcon } from '../lib/icons';
-import type { Category, ComposerPayload } from '../types';
+import { router, useForm, usePage } from '@inertiajs/react';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Badge, Button, Col, Form, OverlayTrigger, Row, Tooltip } from 'react-bootstrap';
+import { route } from 'ziggy-js';
+import type { Category, Perspective } from '../../types/perspectives';
 
 const MOODS = ['hopeful', 'weary', 'angry', 'curious', 'grateful', 'afraid', 'determined'] as const;
 
@@ -21,13 +18,14 @@ interface ComposerProps {
     onSuccess?: () => void;
     submitLabel?: string;
     compact?: boolean;
+    editing?: Perspective | null;
 }
 
 interface ComposerForm {
     voice: string;
     body: string;
     parent_id: number | null;
-    category_id: number | null;
+    perspective_category_id: number | null;
     mood: string;
     tags: string;
     is_anonymous: boolean;
@@ -42,25 +40,29 @@ export function Composer({
     onSuccess,
     submitLabel,
     compact = false,
+    editing = null,
 }: ComposerProps) {
+    const { categories: pageCategories } = usePage().props as unknown as { categories: Category[] };
     const { user } = useAuth();
     const [tagInput, setTagInput] = useState('');
 
-    const { data, setData, post, processing, errors, reset } = useForm<ComposerForm>({
-        voice: '',
-        body: '',
-        parent_id: parentId,
-        category_id: null,
-        mood: '',
-        tags: '',
-        is_anonymous: false,
+    const isEditing = editing !== null;
+
+    const { data, setData, post, patch, processing, errors, reset } = useForm<ComposerForm>({
+        voice: editing?.voice ?? '',
+        body: editing?.body ?? '',
+        parent_id: editing?.parent_id ?? parentId,
+        perspective_category_id: editing?.category?.id ?? null,
+        mood: editing?.mood ?? '',
+        tags: (editing?.tags ?? []).join(','),
+        is_anonymous: editing?.is_anonymous ?? false,
     });
 
     if (!user) {
         return (
             <div className="tf-composer-locked">
                 <FontAwesomeIcon icon={faEye} className="me-2" />
-                <a href="/login">Sign in</a> to add your perspective.
+                <a href={route('perspectives.login')}>Sign in</a> to add your perspective.
             </div>
         );
     }
@@ -70,18 +72,32 @@ export function Composer({
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        post('/perspectives', {
+
+        const routeName = isEditing ? route('perspectives.update', { perspective: editing!.id }) : route('perspectives.store');
+
+        const options = {
             preserveScroll: true,
             onSuccess: () => {
-                reset();
-                setTagInput('');
+                if (!isEditing) {
+                    reset();
+                    setTagInput('');
+                }
                 onSuccess?.();
             },
-        });
+        };
+
+        if (isEditing) {
+            patch(routeName, options);
+        } else {
+            post(routeName, options);
+        }
     };
 
     const addTag = () => {
-        const t = tagInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+        const t = tagInput
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9-]/g, '');
         if (!t) return;
         const current = data.tags ? data.tags.split(',') : [];
         if (!current.includes(t) && current.length < 5) {
@@ -98,16 +114,27 @@ export function Composer({
         setData('tags', next);
     };
 
+    const effectiveCategories = Array.isArray(categories) && categories.length > 0 ? categories : (pageCategories ?? []);
     const currentTags = data.tags ? data.tags.split(',').filter(Boolean) : [];
-
+    useEffect(() => {
+        if (Array.isArray(categories) && categories.length > 0) {
+            return;
+        }
+        router.reload({ only: ['categories'] });
+    }, []);
     return (
         <Form className="tf-composer" onSubmit={submit}>
-            {isBranch && parentLabel && (
+            {isEditing ? (
+                <div className="tf-composer-context">
+                    <FontAwesomeIcon icon={faPenToSquare} className="me-2" />
+                    Editing your perspective
+                </div>
+            ) : isBranch && parentLabel ? (
                 <div className="tf-composer-context">
                     <FontAwesomeIcon icon={faLayerGroup} className="me-2" />
                     Stepping into the shoes of <strong>{parentLabel}</strong>
                 </div>
-            )}
+            ) : null}
 
             <Row className="g-3">
                 <Col md={6}>
@@ -121,15 +148,9 @@ export function Composer({
                             value={data.voice}
                             onChange={(e) => setData('voice', e.target.value)}
                             maxLength={120}
-                            placeholder={
-                                isBranch
-                                    ? 'As a person who…'
-                                    : 'As a night-shift nurse / As a landlord'
-                            }
+                            placeholder={isBranch ? 'As a person who…' : 'As a night-shift nurse / As a landlord'}
                         />
-                        {errors.voice && (
-                            <Form.Text className="text-danger">{errors.voice}</Form.Text>
-                        )}
+                        {errors.voice && <Form.Text className="text-danger">{errors.voice}</Form.Text>}
                     </Form.Group>
                 </Col>
 
@@ -141,16 +162,11 @@ export function Composer({
                                 Category
                             </Form.Label>
                             <Form.Select
-                                value={data.category_id ?? ''}
-                                onChange={(e) =>
-                                    setData(
-                                        'category_id',
-                                        e.target.value ? Number(e.target.value) : null,
-                                    )
-                                }
+                                value={data.perspective_category_id ?? ''}
+                                onChange={(e) => setData('perspective_category_id', e.target.value ? Number(e.target.value) : null)}
                             >
                                 <option value="">— Choose a category —</option>
-                                {categories.map((c) => (
+                                {effectiveCategories.map((c) => (
                                     <option key={c.id} value={c.id}>
                                         {c.name}
                                     </option>
@@ -162,9 +178,7 @@ export function Composer({
             </Row>
 
             <Form.Group className="mt-3">
-                <Form.Label className="tf-label">
-                    What does the world look like from here?
-                </Form.Label>
+                <Form.Label className="tf-label">What does the world look like from here?</Form.Label>
                 <Form.Control
                     as="textarea"
                     rows={compact ? 4 : 6}
@@ -176,18 +190,8 @@ export function Composer({
                     placeholder="Describe what you see, what you fear, what you want — without arguing for it."
                 />
                 <div className="d-flex justify-content-between mt-1">
-                    {errors.body ? (
-                        <Form.Text className="text-danger">{errors.body}</Form.Text>
-                    ) : (
-                        <span />
-                    )}
-                    <small
-                        className={
-                            bodyLeft < 100 ? 'text-danger' : 'text-muted'
-                        }
-                    >
-                        {bodyLeft} left
-                    </small>
+                    {errors.body ? <Form.Text className="text-danger">{errors.body}</Form.Text> : <span />}
+                    <small className={bodyLeft < 100 ? 'text-danger' : 'text-muted'}>{bodyLeft} left</small>
                 </div>
             </Form.Group>
 
@@ -201,13 +205,7 @@ export function Composer({
                         <div className="tf-tag-input">
                             <div className="tf-tag-list">
                                 {currentTags.map((tag) => (
-                                    <Badge
-                                        key={tag}
-                                        bg="light"
-                                        text="dark"
-                                        className="tf-tag"
-                                        onClick={() => removeTag(tag)}
-                                    >
+                                    <Badge key={tag} bg="light" text="dark" className="tf-tag" onClick={() => removeTag(tag)}>
                                         #{tag} <span className="tf-tag-x">×</span>
                                     </Badge>
                                 ))}
@@ -250,9 +248,7 @@ export function Composer({
                                     key={m}
                                     type="button"
                                     className={`tf-mood ${data.mood === m ? 'is-on' : ''}`}
-                                    onClick={() =>
-                                        setData('mood', data.mood === m ? '' : m)
-                                    }
+                                    onClick={() => setData('mood', data.mood === m ? '' : m)}
                                 >
                                     {m}
                                 </button>
@@ -270,27 +266,16 @@ export function Composer({
                     checked={data.is_anonymous}
                     onChange={(e) => setData('is_anonymous', e.target.checked)}
                 />
-                <OverlayTrigger
-                    placement="top"
-                    overlay={
-                        <Tooltip>
-                            Anonymous posts still count toward your reputation and dashboard.
-                        </Tooltip>
-                    }
-                >
-                    <span className="tf-help"><FontAwesomeIcon icon={faEyeSlash} /></span>
+                <OverlayTrigger placement="top" overlay={<Tooltip>Anonymous posts still count toward your reputation and dashboard.</Tooltip>}>
+                    <span className="tf-help">
+                        <FontAwesomeIcon icon={faEyeSlash} />
+                    </span>
                 </OverlayTrigger>
             </div>
 
             <div className="tf-composer-actions">
-                <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={processing || data.body.trim().length < 10}
-                >
-                    {processing
-                        ? 'Saving…'
-                        : submitLabel ?? (isBranch ? 'Add this perspective' : 'Share perspective')}
+                <Button variant="primary" type="submit" disabled={processing || data.body.trim().length < 10}>
+                    {processing ? 'Saving…' : (submitLabel ?? (isEditing ? 'Save changes' : isBranch ? 'Add this perspective' : 'Share perspective'))}
                 </Button>
                 {onCancel && (
                     <Button variant="outline-secondary" type="button" onClick={onCancel}>

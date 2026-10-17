@@ -6,10 +6,10 @@ import {
     faShoePrints, faLayerGroup, faHeart, faBookmark,
     faChartLine, faArrowTrendUp, faPenFancy,
 } from '@fortawesome/free-solid-svg-icons';
-import Layout from '../components/Layout';
-import EmptyState from '../components/EmptyState';
+import Layout from '../components/perspectives/layout';
+import EmptyState from '../components/perspectives/empty-state';
 import { timeAgo } from '../lib/format';
-import type { Perspective } from '../types';
+import type { Perspective } from '../types/perspectives';
 
 interface DashboardProps {
     stats: {

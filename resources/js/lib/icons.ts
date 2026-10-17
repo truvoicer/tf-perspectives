@@ -16,6 +16,6 @@ const ICONS: Record<string, IconDefinition> = {
     handshake: faHandshake, eye: faEye, question: faCircleQuestion,
 };
 
-export function categoryIcon(name: string | undefined): IconDefinition {
-    return ICONS[name ?? ''] ?? faLightbulb;
+export function categoryIcon(full_name: string | undefined): IconDefinition {
+    return ICONS[full_name ?? ''] ?? faLightbulb;
 }

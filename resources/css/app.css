@@ -1,29 +1,118 @@
-/* packages/truvoicer/tf-perspectives/resources/css/app.css */
-/* Extends Bootstrap — imported after bootstrap/dist/css/bootstrap.min.css. */
+/* packages/truvoicer/tf-perspectives/resources/css/app.css
+ * Extends Bootstrap — imported after bootstrap/dist/css/bootstrap.min.css.
+ *
+ * Colors are mapped to the host app's semantic CSS variables so light/dark
+ * theme switching works without duplicating palette rules here. The host's
+ * :root/.light and .dark blocks remain the single source of truth for those
+ * base tokens; this file only defines the tf-* layer on top of them.
+ */
 
-:root {
-    --tf-paper: #f7f4ee;
-    --tf-paper-2: #fffdf9;
-    --tf-ink: #23201c;
-    --tf-ink-soft: #6a635a;
-    --tf-line: #e3ddd2;
-    --tf-accent: #2f5d50;
+:root,
+.light {
+    /* ── Paper / ink palette ─────────────────────────────────────────────
+     * In light mode we use a warm parchment paper instead of the host's
+     * default white so the "perspective" theme keeps its character. */
+    --tf-paper:       #f7f4ee;
+    --tf-paper-2:     #fffdf9;
+    --tf-ink:         #23201c;
+    --tf-ink-soft:    #6a635a;
+    --tf-line:        #e3ddd2;
+
+    /* ── Accents ────────────────────────────────────────────────────────── */
+    --tf-accent:      #2f5d50;
     --tf-accent-soft: #e6f0ec;
-    --tf-warm: #b8722f;
+    --tf-warm:        #b8722f;
+
+    /* ── Radius & shadow ────────────────────────────────────────────────── */
     --tf-radius: 14px;
-    --tf-shadow: 0 1px 2px rgba(35, 32, 28, .05), 0 10px 30px -20px rgba(35, 32, 28, .35);
+    --tf-shadow: 0 1px 2px rgba(35, 32, 28, .05),
+                 0 10px 30px -20px rgba(35, 32, 28, .35);
 }
 
+/* Dark overrides — only for the tokens where the paper palette needs a
+ * specific dark counterpart. Everything else inherits from --tf-* above. */
+.dark {
+    --tf-paper:       var(--bg-primary);
+    --tf-paper-2:     var(--bg-secondary);
+    --tf-ink:         var(--text-primary);
+    --tf-ink-soft:    var(--text-secondary);
+    --tf-line:        var(--card-border);
+
+    --tf-accent:      #6ea8fe;         /* brighter for contrast on dark */
+    --tf-accent-soft: #253246;
+    --tf-warm:        #d99852;
+
+    --tf-shadow: 0 1px 2px rgba(0, 0, 0, .35),
+                 0 10px 30px -20px rgba(0, 0, 0, .6);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Shell + theme-aware token aliases
+   ─────────────────────────────────────────────────────────────────────────
+   The host redefines --modal-bg, --select-bg, --card-border, --text-primary
+   etc. under :root/.light and .dark. We re-alias them here (on .tf-shell,
+   which always sits INSIDE the theme-scoped element) so custom properties
+   resolve against the currently active theme rather than the :root values.
+
+   We also re-point Bootstrap's own --bs-dropdown-* tokens at these aliases
+   so Dropdown.Item, hover, active, divider and header all follow the theme
+   without per-selector overrides.
+*/
 .tf-shell {
+    /* ── Modal & dropdown surfaces ──────────────────────────────────────── */
+    --tf-modal-bg:            var(--modal-bg);
+    --tf-modal-header-bg:     var(--modal-header-bg);
+    --tf-modal-border:        var(--modal-border);
+    --tf-modal-text:          var(--modal-text);
+
+    /* ── Form controls ──────────────────────────────────────────────────── */
+    --tf-input-bg:            var(--select-bg);
+    --tf-input-text:          var(--select-text);
+    --tf-input-border:        var(--select-border);
+    --tf-input-placeholder:   var(--select-placeholder);
+
+    /* ── Card tokens (kept for completeness) ────────────────────────────── */
+    --tf-card-bg:             var(--card-bg);
+    --tf-card-border:         var(--card-border);
+    --tf-card-text:           var(--card-text);
+    --tf-card-subtitle:       var(--card-subtitle);
+
+    /* ── Body & text ────────────────────────────────────────────────────── */
+    --tf-body-bg:             var(--body-bg);
+    --tf-text-primary:        var(--text-primary);
+    --tf-text-secondary:      var(--text-secondary);
+    --tf-text-muted:          var(--text-muted);
+    --tf-link:                var(--link-color);
+    --tf-link-hover:          var(--link-hover-color);
+
+    /* ── Bootstrap dropdown tokens (fixes light-mode items in dark theme) ─ */
+    --bs-dropdown-bg:                  var(--modal-bg);
+    --bs-dropdown-color:               var(--modal-text);
+    --bs-dropdown-border-color:        var(--modal-border);
+    --bs-dropdown-border-radius:       12px;
+    --bs-dropdown-link-color:          var(--modal-text);
+    --bs-dropdown-link-hover-color:    var(--select-hover-text);
+    --bs-dropdown-link-hover-bg:       var(--select-hover-bg);
+    --bs-dropdown-link-active-color:   #fff;
+    --bs-dropdown-link-active-bg:      var(--tf-accent);
+    --bs-dropdown-divider-bg:          var(--modal-border);
+    --bs-dropdown-header-color:        var(--text-muted);
+    --bs-dropdown-box-shadow:          var(--tf-shadow);
+    --bs-dropdown-padding-y:           6px;
+
+    /* ── Shell surface ──────────────────────────────────────────────────── */
     background: var(--tf-paper);
     color: var(--tf-ink);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    transition: background-color .2s ease, color .2s ease;
 }
 
-/* ---------- navbar ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Navbar
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-navbar {
     background: var(--tf-paper-2);
     border-bottom: 1px solid var(--tf-line);
@@ -43,8 +132,21 @@
     padding: 8px 12px;
     border-radius: 8px;
 }
-.tf-navbar .nav-link:hover { color: var(--tf-ink); background: rgba(0,0,0,.03); }
+.tf-navbar .nav-link:hover {
+    color: var(--tf-ink);
+    background: color-mix(in srgb, var(--tf-ink) 6%, transparent);
+}
 .tf-navbar .nav-link.active { color: var(--tf-accent); font-weight: 600; }
+/* The host stylesheet sets .navbar-collapse.collapse { background: #fff }
+ * without a theme variable. Override it here so the collapsed mobile nav
+ * follows the active theme. */
+.tf-shell .navbar-collapse.collapse {
+    background: var(--tf-paper-2);
+}
+.tf-shell .navbar-collapse.collapse.show,
+.tf-shell .navbar-collapse.collapse.collapsing {
+    background: var(--tf-paper-2);
+}
 
 .tf-btn-compose { border-radius: 999px; padding-inline: 16px; }
 .tf-icon-btn {
@@ -69,25 +171,57 @@
 .tf-avatar-sm { width: 30px; height: 30px; font-size: 12px; }
 .tf-avatar-xs { width: 22px; height: 22px; font-size: 10px; }
 
+/* Colors now come from --bs-dropdown-* tokens (set on .tf-shell above). */
 .tf-dropdown {
+    background: var(--tf-paper) !important;
+    color: var(--tf-ink);
     border: 1px solid var(--tf-line);
-    box-shadow: var(--tf-shadow);
     border-radius: 12px;
     padding: 6px;
     min-width: 240px;
 }
 .tf-dropdown .dropdown-item {
-    border-radius: 8px; padding: 8px 10px; font-size: 14px;
+    color: var(--tf-ink);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
 }
+.tf-dropdown .dropdown-item:hover,
+.tf-dropdown .dropdown-item:focus {
+    background: var(--select-hover-bg);
+    color: var(--select-hover-text);
+}
+.tf-dropdown .dropdown-item.active,
+.tf-dropdown .dropdown-item:active {
+    background: var(--tf-accent);
+    color: #fff;
+}
+.tf-dropdown .dropdown-divider {
+    border-color: var(--tf-line);
+}
+.tf-dropdown .dropdown-header {
+    color: var(--tf-ink-soft);
+}
+.tf-dropdown {
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 240px;
+}
+.tf-dropdown .dropdown-item {
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+.tf-dropdown .dropdown-header { color: var(--tf-ink-soft); }
 .tf-notifications { min-width: 320px; }
-.tf-notif {
-    display: flex; align-items: flex-start; gap: 10px; padding: 2px 0;
-}
+.tf-notif { display: flex; align-items: flex-start; gap: 10px; padding: 2px 0; }
 .tf-empty-sm {
     padding: 22px; text-align: center; color: var(--tf-ink-soft); font-size: 14px;
 }
 
-/* ---------- layout ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Layout
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-main { padding-top: 28px; padding-bottom: 60px; flex: 1; }
 .tf-foot {
     border-top: 1px solid var(--tf-line);
@@ -102,7 +236,10 @@
     margin-bottom: 28px;
 }
 .tf-hero-inner { max-width: 900px; margin: 0 auto; padding: 0 20px; }
-.tf-hero-inner h1 { font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em; margin: 0 0 10px; }
+.tf-hero-inner h1 {
+    font-size: clamp(26px, 4vw, 38px); letter-spacing: -.02em;
+    margin: 0 0 10px; color: var(--tf-ink);
+}
 .tf-hero-inner p { color: var(--tf-ink-soft); max-width: 62ch; margin: 0; }
 .tf-hero-cat { text-align: center; }
 .tf-cat-hero-icon {
@@ -112,12 +249,8 @@
     border: 2px solid var(--cat, var(--tf-accent));
 }
 
-.tf-stats {
-    display: flex; gap: 30px; margin-top: 20px; flex-wrap: wrap;
-}
-.tf-stat {
-    display: flex; align-items: center; gap: 8px; color: var(--tf-ink-soft); font-size: 14px;
-}
+.tf-stats { display: flex; gap: 30px; margin-top: 20px; flex-wrap: wrap; }
+.tf-stat { display: flex; align-items: center; gap: 8px; color: var(--tf-ink-soft); font-size: 14px; }
 .tf-stat strong { color: var(--tf-ink); font-size: 18px; }
 
 .tf-panel {
@@ -132,7 +265,7 @@
     font-size: 15px; text-transform: uppercase; letter-spacing: .05em;
     color: var(--tf-ink-soft); margin: 0 0 14px;
 }
-.tf-page-title { font-size: 26px; margin: 0 0 8px; letter-spacing: -.01em; }
+.tf-page-title { font-size: 26px; margin: 0 0 8px; letter-spacing: -.01em; color: var(--tf-ink); }
 
 .tf-back {
     display: inline-flex; align-items: center;
@@ -148,17 +281,103 @@
     box-shadow: var(--tf-shadow); z-index: 100;
 }
 
-/* ---------- tabs ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Perspective Shoes (Offcanvas & Cards)
+   ───────────────────────────────────────────────────────────────────────── */
+
+.tf-offcanvas {
+    width: 500px !important;
+    background: var(--tf-paper);
+    color: var(--tf-ink);
+    border-left: 1px solid var(--tf-line);
+}
+
+@media (max-width: 576px) {
+    .tf-offcanvas {
+        width: 100% !important;
+    }
+}
+
+.tf-shoe-card {
+    background: var(--tf-paper-2);
+    border: 1px solid var(--tf-line);
+    border-left: 3px solid var(--tf-accent);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+}
+
+.tf-shoe-card.is-impactful {
+    border-left-color: var(--tf-warm);
+    background: color-mix(in srgb, var(--tf-warm) 4%, var(--tf-paper-2));
+}
+
+.tf-impact-badge {
+    position: absolute;
+    top: -10px;
+    right: 12px;
+    background: var(--tf-warm);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tf-shoe-head {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.tf-shoe-body {
+    font-size: 15px;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+}
+
+.tf-shoe-foot {
+    border-top: 1px dashed var(--tf-line);
+    padding-top: 10px;
+    font-size: 13px;
+}
+
+.tf-shoe-discussions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--tf-line);
+    background: color-mix(in srgb, var(--tf-paper) 50%, transparent);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.tf-discussion-thread {
+    font-size: 14px;
+}
+
+.tf-discussion-node p {
+    white-space: pre-wrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Tabs
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-tabs { gap: 4px; }
 .tf-tabs .nav-link {
     color: var(--tf-ink-soft); border-radius: 999px; padding: 7px 14px; font-size: 14px;
 }
-.tf-tabs .nav-link:hover { background: rgba(0,0,0,.04); color: var(--tf-ink); }
-.tf-tabs .nav-link.active {
-    background: var(--tf-accent); color: #fff;
+.tf-tabs .nav-link:hover {
+    background: color-mix(in srgb, var(--tf-ink) 6%, transparent);
+    color: var(--tf-ink);
 }
+.tf-tabs .nav-link.active { background: var(--tf-accent); color: #fff; }
 
-/* ---------- cards ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Cards
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-feed { display: grid; gap: 16px; }
 .tf-card {
     background: var(--tf-paper-2);
@@ -167,6 +386,7 @@
     padding: 16px 18px;
     box-shadow: var(--tf-shadow);
     border-left: 3px solid var(--tf-accent);
+    color: var(--tf-ink);
 }
 .tf-card-head { display: flex; gap: 12px; align-items: flex-start; }
 .tf-card-who { flex: 1; min-width: 0; }
@@ -189,25 +409,22 @@
 }
 .tf-cat-pill:hover { filter: brightness(.9); }
 
-.tf-card-body { margin: 12px 0 10px; white-space: pre-wrap; font-size: 15.5px; }
+.tf-card-body { margin: 12px 0 10px; white-space: pre-wrap; font-size: 15.5px; color: var(--tf-ink); }
 .tf-card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
 .tf-tag-link {
     color: var(--tf-warm); text-decoration: none; font-size: 13px;
-    padding: 2px 8px; border-radius: 999px; background: rgba(184,114,47,.08);
+    padding: 2px 8px; border-radius: 999px;
+    background: color-mix(in srgb, var(--tf-warm) 12%, transparent);
 }
-.tf-tag-link:hover { background: rgba(184,114,47,.16); }
+.tf-tag-link:hover { background: color-mix(in srgb, var(--tf-warm) 22%, transparent); }
 
 .tf-card-foot {
     display: flex; align-items: center; gap: 10px;
     padding-top: 12px; border-top: 1px dashed var(--tf-line); flex-wrap: wrap;
 }
-.tf-card-foot-right {
-    display: flex; gap: 12px; align-items: center; margin-left: auto;
-}
+.tf-card-foot-right { display: flex; gap: 12px; align-items: center; margin-left: auto; }
 .tf-count { color: var(--tf-ink-soft); text-decoration: none; font-size: 13px; }
-.tf-read-more {
-    color: var(--tf-accent); text-decoration: none; font-size: 13px; font-weight: 600;
-}
+.tf-read-more { color: var(--tf-accent); text-decoration: none; font-size: 13px; font-weight: 600; }
 .tf-pill-action {
     background: transparent; border: 1px solid var(--tf-accent);
     color: var(--tf-accent); padding: 5px 12px; border-radius: 999px;
@@ -216,7 +433,9 @@
 .tf-pill-action:hover:not(:disabled) { background: var(--tf-accent); color: #fff; }
 .tf-pill-action:disabled { opacity: .5; cursor: not-allowed; }
 
-/* ---------- reactions ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Reactions
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-reactions { display: flex; gap: 6px; flex-wrap: wrap; }
 .tf-reaction {
     background: transparent; border: 1px solid var(--tf-line);
@@ -234,7 +453,9 @@
 .tf-reaction-label { display: none; }
 @media (min-width: 768px) { .tf-reaction-label { display: inline; } }
 
-/* ---------- thread / branch ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Thread / branch
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-thread { display: grid; gap: 16px; }
 .tf-thread-intro {
     display: flex; gap: 10px; align-items: center; color: var(--tf-ink-soft);
@@ -246,7 +467,7 @@
 .tf-children {
     margin: 14px 0 0 22px;
     padding-left: 20px;
-    border-left: 2px solid hsl(calc(168 + var(--depth) * 28) 28% 78%);
+    border-left: 2px solid color-mix(in srgb, var(--tf-accent) 45%, transparent);
     display: grid; gap: 14px;
 }
 .tf-branch-composer {
@@ -254,7 +475,9 @@
     border-radius: var(--tf-radius); margin-bottom: 6px;
 }
 
-/* ---------- composer ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Composer
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-composer { display: grid; gap: 12px; }
 .tf-composer-context {
     padding: 10px 14px; background: var(--tf-accent-soft); border-radius: 10px;
@@ -288,34 +511,81 @@
 .tf-help { color: var(--tf-ink-soft); cursor: help; }
 .tf-composer-actions { display: flex; gap: 10px; margin-top: 6px; }
 
-.tf-modal .modal-content {
-    border-radius: var(--tf-radius); border: 1px solid var(--tf-line);
+/* Bootstrap form controls inside the composer need to follow the theme. */
+.tf-composer .form-control,
+.tf-composer .form-select,
+.tf-modal .form-control,
+.tf-modal .form-select {
+    background-color: var(--select-bg);
+    color: var(--select-text);
+    border-color: var(--select-border);
 }
-.tf-modal .modal-header { border-bottom: 1px solid var(--tf-line); }
-.tf-modal .modal-title { font-family: inherit; }
+.tf-composer .form-control::placeholder,
+.tf-modal .form-control::placeholder {
+    color: var(--select-placeholder);
+}
+.tf-composer .form-control:focus,
+.tf-composer .form-select:focus,
+.tf-modal .form-control:focus,
+.tf-modal .form-select:focus {
+    background-color: var(--select-bg);
+    color: var(--select-text);
+    border-color: var(--tf-accent);
+    box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--tf-accent) 25%, transparent);
+}
+.tf-composer .input-group-text {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--select-border);
+}
 
-/* ---------- search ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Modal
+   ───────────────────────────────────────────────────────────────────────── */
+.tf-modal .modal-content {
+    background: var(--modal-bg);
+    color: var(--modal-text);
+    border-radius: var(--tf-radius);
+    border: 1px solid var(--modal-border);
+}
+.tf-modal .modal-header {
+    border-bottom: 1px solid var(--modal-border);
+    background: var(--modal-header-bg);
+}
+.tf-modal .modal-title { font-family: inherit; color: var(--modal-text); }
+.tf-modal .modal-footer {
+    border-top: 1px solid var(--modal-border);
+    background: var(--modal-footer-bg);
+}
+.tf-modal .btn-close { filter: var(--tf-modal-close-filter, none); }
+.dark .tf-modal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Search
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-search-form { margin-top: 16px; }
 .tf-tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
-/* ---------- categories ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Categories
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
 .tf-cat-tile {
     display: flex; align-items: center; gap: 8px;
     padding: 10px 12px; border-radius: 10px;
-    background: color-mix(in srgb, var(--cat, var(--tf-accent)) 12%, transparent);
+    background: color-mix(in srgb, var(--cat, var(--tf-accent)) 15%, transparent);
     color: var(--cat, var(--tf-accent));
     text-decoration: none; font-size: 14px; font-weight: 600;
     transition: transform .12s ease;
 }
-.tf-cat-tile:hover { transform: translateY(-1px); filter: brightness(.95); }
+.tf-cat-tile:hover { transform: translateY(-1px); filter: brightness(1.05); }
 .tf-cat-tile .badge { margin-left: auto; font-weight: 500; }
 
 .tf-cat-card {
     display: flex; gap: 14px; padding: 18px;
     background: var(--tf-paper-2); border: 1px solid var(--tf-line);
     border-radius: var(--tf-radius);
-    text-decoration: none; color: inherit; height: 100%;
+    text-decoration: none; color: var(--tf-ink); height: 100%;
     border-left: 4px solid var(--cat, var(--tf-accent));
     transition: transform .12s ease, box-shadow .12s ease;
 }
@@ -323,14 +593,16 @@
 .tf-cat-card-icon {
     width: 46px; height: 46px; border-radius: 12px; flex: none;
     display: grid; place-items: center; font-size: 20px;
-    background: color-mix(in srgb, var(--cat, var(--tf-accent)) 15%, transparent);
+    background: color-mix(in srgb, var(--cat, var(--tf-accent)) 18%, transparent);
     color: var(--cat, var(--tf-accent));
 }
-.tf-cat-card-body h3 { font-size: 17px; margin: 0 0 6px; }
+.tf-cat-card-body h3 { font-size: 17px; margin: 0 0 6px; color: var(--tf-ink); }
 .tf-cat-card-body p { color: var(--tf-ink-soft); font-size: 14px; margin: 0 0 8px; }
 .tf-cat-card-body small { color: var(--tf-ink-soft); }
 
-/* ---------- profile & dashboard ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Profile & dashboard
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-profile-head {
     display: flex; gap: 20px; padding: 22px; align-items: flex-start;
     background: var(--tf-paper-2); border: 1px solid var(--tf-line);
@@ -343,16 +615,19 @@
     display: grid; place-items: center; font-weight: 700; font-size: 32px; flex: none;
 }
 .tf-profile-info { flex: 1; }
-.tf-profile-info h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -.01em; }
+.tf-profile-info h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -.01em; color: var(--tf-ink); }
 .tf-profile-meta { color: var(--tf-ink-soft); font-size: 14px; display: flex; gap: 8px; align-items: center; }
 .tf-profile-bio { margin: 12px 0 0; max-width: 60ch; }
 .tf-profile-stats { display: flex; gap: 22px; margin-top: 14px; flex-wrap: wrap; }
 .tf-profile-actions { align-self: center; }
 
-.tf-stat-card { border: 1px solid var(--tf-line); border-radius: var(--tf-radius); }
+.tf-stat-card {
+    border: 1px solid var(--tf-line); border-radius: var(--tf-radius);
+    background: var(--tf-paper-2); color: var(--tf-ink);
+}
 .tf-stat-card .card-body { padding: 18px; }
 .tf-stat-icon { color: var(--tf-accent); font-size: 18px; margin-bottom: 8px; }
-.tf-stat-value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+.tf-stat-value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; color: var(--tf-ink); }
 .tf-stat-label { color: var(--tf-ink-soft); font-size: 13px; }
 
 .tf-activity { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
@@ -360,36 +635,46 @@
     display: flex; justify-content: space-between; gap: 10px;
     padding-bottom: 8px; border-bottom: 1px dashed var(--tf-line);
 }
+.tf-activity-item a { color: var(--tf-ink); }
+.tf-activity-item a:hover { color: var(--tf-accent); }
+
 .tf-highlight {
     display: block; padding: 14px; background: var(--tf-accent-soft);
     border-radius: 12px; text-decoration: none; color: inherit;
 }
 .tf-highlight strong { display: block; margin-bottom: 6px; color: var(--tf-accent); }
 
-/* ---------- auth ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Auth
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-auth-card {
     background: var(--tf-paper-2); padding: 32px;
     border: 1px solid var(--tf-line); border-radius: var(--tf-radius);
     box-shadow: var(--tf-shadow); margin-top: 30px; text-align: center;
+    color: var(--tf-ink);
 }
 .tf-auth-icon {
     width: 60px; height: 60px; border-radius: 18px; margin: 0 auto 14px;
     background: var(--tf-accent-soft); color: var(--tf-accent);
     display: grid; place-items: center; font-size: 26px;
 }
-.tf-auth-card h1 { font-size: 22px; margin-bottom: 8px; }
+.tf-auth-card h1 { font-size: 22px; margin-bottom: 8px; color: var(--tf-ink); }
 .tf-auth-card form { text-align: left; margin-top: 20px; }
 .tf-auth-foot { margin-top: 18px; font-size: 14px; color: var(--tf-ink-soft); }
+.tf-auth-foot a { color: var(--tf-link); }
+.tf-auth-foot a:hover { color: var(--tf-link-hover); }
 
-/* ---------- notifications & pagination ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Notifications & pagination
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-notifications-list { list-style: none; padding: 0; margin: 0; }
 .tf-notif-row {
     display: flex; gap: 12px; align-items: flex-start;
     padding: 14px 6px; border-bottom: 1px solid var(--tf-line);
     cursor: pointer; border-radius: 8px;
 }
-.tf-notif-row:hover { background: rgba(0,0,0,.02); }
-.tf-notif-row.is-unread { background: rgba(47,93,80,.04); }
+.tf-notif-row:hover { background: color-mix(in srgb, var(--tf-ink) 4%, transparent); }
+.tf-notif-row.is-unread { background: color-mix(in srgb, var(--tf-accent) 6%, transparent); }
 .tf-unread-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--tf-accent); align-self: center; flex: none;
@@ -413,7 +698,9 @@
 .tf-page-link.is-active { background: var(--tf-accent); border-color: var(--tf-accent); color: #fff; }
 .tf-page-link.is-disabled { opacity: .4; cursor: not-allowed; }
 
-/* ---------- empty states ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Empty states
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-empty { padding: 48px 20px; text-align: center; color: var(--tf-ink-soft); }
 .tf-empty-icon {
     font-size: 32px; color: var(--tf-accent);
@@ -424,7 +711,9 @@
 .tf-empty h3 { color: var(--tf-ink); font-size: 20px; margin: 0 0 6px; }
 .tf-empty p { max-width: 42ch; margin: 0 auto 16px; }
 
-/* ---------- helper ---------- */
+/* ─────────────────────────────────────────────────────────────────────────
+   Helpers
+   ───────────────────────────────────────────────────────────────────────── */
 .tf-muted { color: var(--tf-ink-soft); }
 
 @media (max-width: 768px) {
@@ -435,3 +724,4 @@
     .tf-stats { gap: 16px; }
     .tf-profile-stats { gap: 16px; }
 }
+

@@ -1,16 +1,16 @@
 // packages/truvoicer/tf-perspectives/resources/js/types.ts
 import type { PageProps as InertiaPageProps } from '@inertiajs/core';
+import { User as TruUser } from '@truvoicer/tru-fetcher-core-ui/types';
 
-export interface User {
-    id: number;
-    name: string;
-    handle: string;
+export interface User extends TruUser {
+    display_name: string;
     avatar_url: string | null;
     bio?: string | null;
     perspectives_count?: number;
     followers_count?: number;
     following_count?: number;
     is_following?: boolean;
+
 }
 
 export interface Author extends User {}
@@ -48,6 +48,7 @@ export interface Perspective {
     children_count: number;
     bookmark_count: number;
     is_bookmarked: boolean;
+    is_owner: boolean;
     can_branch: boolean;
     created_at: string | null;
 }
@@ -92,4 +93,48 @@ export interface SharedProps extends InertiaPageProps {
     unread_notifications?: number;
     categories_nav?: Category[];
     [key: string]: unknown;
+}
+
+
+export interface ShoeAuthor {
+    id: number;
+    first_name: string;
+    last_name: string;
+    display_name: string;
+}
+
+export interface ShoeDiscussion {
+    id: number;
+    shoe_id: number;
+    parent_id: number | null;
+    depth: number;
+    body: string;
+    is_anonymous: boolean;
+    is_owner: boolean;
+    author: ShoeAuthor | null;
+    created_at: string;
+    children?: ShoeDiscussion[]; // populated client-side
+}
+
+export interface PerspectiveShoe {
+    id: number;
+    perspective_id: number;
+    voice: string;
+    body: string;
+    mood: string | null;
+    is_anonymous: boolean;
+    is_owner: boolean;
+    author: ShoeAuthor | null;
+    discussions_count: number;
+    empathies_count: number;
+    impact_rank: number | null;
+    changed_my_view: boolean;
+    created_at: string;
+    discussions?: ShoeDiscussion[]; // populated on detail fetch
+}
+
+// Add to existing Perspective interface:
+export interface Perspective {
+    // ... existing fields
+    shoes_count?: number;
 }

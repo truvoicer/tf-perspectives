@@ -3,8 +3,9 @@ import { Dropdown } from 'react-bootstrap';
 import { Link } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBellSlash } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../hooks/useAuth';
-import { timeAgo } from '../lib/format';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
+import { timeAgo } from '../../lib/format';
+import { route } from 'ziggy-js';
 
 export function NotificationsDropdown() {
     const { user } = useAuth();
@@ -15,7 +16,7 @@ export function NotificationsDropdown() {
             <Dropdown.Header className="d-flex justify-content-between align-items-center">
                 <span>Notifications</span>
                 {notifications.length > 0 && (
-                    <Link href="/notifications" className="small">
+                    <Link href={route('perspectives.notifications')} className="small">
                         See all
                     </Link>
                 )}
@@ -35,7 +36,7 @@ export function NotificationsDropdown() {
                     >
                         <div className="tf-notif">
                             <span className="tf-avatar tf-avatar-xs">
-                                {n.actor?.name?.charAt(0).toUpperCase() ?? '?'}
+                                {n.actor?.full_name?.charAt(0).toUpperCase() ?? '?'}
                             </span>
                             <div>
                                 <div>{n.message}</div>

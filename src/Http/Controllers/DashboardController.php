@@ -9,6 +9,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Truvoicer\TfPerspectives\Http\Controllers\Concerns\TransformsPerspectives;
 use Truvoicer\TfPerspectives\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\PerspectiveView;
+use Truvoicer\TfPerspectives\Services\CategoryService;
 
 class DashboardController extends Controller
 {
@@ -28,7 +30,11 @@ class DashboardController extends Controller
             ->where('user_id', $me->id)
             ->count();
 
-        $viewsWeek = 0; // populate if you track views
+        $viewsWeek = PerspectiveView::query()
+            ->whereIn('perspective_id', $perspectiveIds)
+            ->where('created_at', '>=', now()->subWeek())
+            ->count();
+
         if (class_exists(\Truvoicer\TfPerspectives\Models\PerspectiveView::class)) {
             $viewsWeek = \Truvoicer\TfPerspectives\Models\PerspectiveView::query()
                 ->whereIn('perspective_id', $perspectiveIds)
@@ -53,7 +59,7 @@ class DashboardController extends Controller
             ->latest()
             ->limit(15)
             ->get()
-            ->map(fn ($n) => [
+            ->map(fn($n) => [
                 'id'             => $n->id,
                 'type'           => $n->data['kind'] ?? 'notification',
                 'message'        => $n->data['message'] ?? 'New activity',
@@ -62,7 +68,7 @@ class DashboardController extends Controller
             ])
             ->all();
 
-        return Inertia::render('@tf-perspectives::dashboard', [
+        return Inertia::render('dashboard', [
             'stats' => [
                 'perspectives'        => Perspective::where('user_id', $me->id)->whereNull('parent_id')->count(),
                 'branches'            => Perspective::where('user_id', $me->id)->whereNotNull('parent_id')->count(),
@@ -72,6 +78,7 @@ class DashboardController extends Controller
                 'top_perspective'     => $topHydrated,
             ],
             'recent_activity' => $recentActivity,
+            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 }

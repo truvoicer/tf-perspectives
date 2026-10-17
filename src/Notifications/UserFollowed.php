@@ -20,15 +20,15 @@ class UserFollowed extends Notification
     public function toArray($notifiable): array
     {
         return [
-            'kind'  => 'follow',
-            'actor' => [
+            'kind'                => 'follow',
+            'actor'               => [
                 'id'     => $this->actor->id,
-                'name'   => $this->actor->name,
+                'name'   => $this->actor->display_name ?? $this->actor->first_name,
                 'handle' => $this->actor->handle ?? 'user-'.$this->actor->id,
             ],
             'perspective_id'      => 0,
             'perspective_excerpt' => '',
-            'message'             => "{$this->actor->name} started following you.",
+            'message'             => "{$this->actor->display_name} started following you.",
         ];
     }
 }

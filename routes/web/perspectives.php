@@ -1,47 +1,89 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Truvoicer\TfPerspectives\Http\Controllers\AuthController;
 
 use Truvoicer\TfPerspectives\Http\Controllers\{
-    AuthController, BookmarkController, CategoryController,
-    DashboardController, FollowController, NotificationController,
-    PerspectiveController, ProfileController, ReactionController,
-    ReportController, SearchController, EmpathyController,
+    BookmarkController,
+    DashboardController,
+    FollowController,
+    NotificationController,
+    PerspectiveController,
+    ProfileController,
+    ReactionController,
+    ReportController,
+    SearchController,
+    EmpathyController,
+    PerspectiveCategoryController,
+    ShoeController,
 };
 
-Route::middleware('web')->group(function () {
-    Route::get('/',                [PerspectiveController::class, 'index'])->name('tf-perspectives.feed');
-    Route::get('/perspectives/{perspective}', [PerspectiveController::class, 'show'])->name('tf-perspectives.show');
 
-    Route::post('/perspectives/{perspective}/empathize', [EmpathyController::class, 'toggle'])->name('perspectives.empathize');
-    Route::get('/categories',        [CategoryController::class, 'index'])->name('tf-perspectives.categories');
-    Route::get('/categories/{slug}', [CategoryController::class, 'show'])->name('tf-perspectives.categories.show');
+Route::prefix('perspectives')->name('perspectives.')->group(function () {
 
-    Route::get('/search',  [SearchController::class, 'index'])->name('tf-perspectives.search');
+    Route::get('/login', function () {
+        return inertia('@tf-perspectives::auth', ['mode' => 'login']);
+    })
+        ->name('login');
 
-    Route::get('/u/{handle}',         [ProfileController::class, 'show'])->name('tf-perspectives.profile');
-    Route::post('/u/{handle}/follow', [FollowController::class, 'toggle'])->name('tf-perspectives.profile.follow');
+    Route::get('/register', function () {
+        return inertia('@tf-perspectives::auth', ['mode' => 'register']);
+    })
+        ->name('register');
 
-    Route::middleware('guest')->group(function () {
-        Route::get('/login',   fn () => inertia('@tf-perspectives::auth', ['mode' => 'login']))->name('tf-perspectives.login');
-        Route::get('/register', fn () => inertia('@tf-perspectives::auth', ['mode' => 'register']))->name('tf-perspectives.register');
-        Route::post('/login',    [AuthController::class, 'login']);
-        Route::post('/register', [AuthController::class, 'register']);
-    });
+    Route::post('/login', [AuthController::class, 'login'])
+        ->name('login.store');
+
+    Route::post('/register', [AuthController::class, 'register'])
+        ->name('register.store');
+    Route::get('/', [PerspectiveController::class, 'index'])->name('index');
 
     Route::middleware('auth')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout'])->name('tf-perspectives.logout');
+        Route::post('/logout', [AuthController::class, 'logout'])
+            ->name('logout');
 
-        Route::post('/perspectives',                  [PerspectiveController::class, 'store'])->name('tf-perspectives.store');
-        Route::post('/perspectives/{perspective}/react',    [ReactionController::class, 'react'])->name('tf-perspectives.react');
-        Route::post('/perspectives/{perspective}/bookmark', [BookmarkController::class, 'toggle'])->name('tf-perspectives.bookmark');
-        Route::post('/perspectives/{perspective}/report',   [ReportController::class, 'store'])->name('tf-perspectives.report');
+        Route::post('/', [PerspectiveController::class, 'store'])->name('store');
 
-        Route::get('/dashboard',  [DashboardController::class, 'index'])->name('tf-perspectives.dashboard');
-        Route::get('/bookmarks',  [BookmarkController::class, 'index'])->name('tf-perspectives.bookmarks');
+        Route::get('/u/{user}', [ProfileController::class, 'show'])->name('profile');
+        Route::post('/u/{user}/follow', [FollowController::class, 'toggle'])->name('profile.follow');
 
-        Route::get('/notifications',             [NotificationController::class, 'index'])->name('tf-perspectives.notifications');
-        Route::post('/notifications/read-all',   [NotificationController::class, 'readAll'])->name('tf-perspectives.notifications.read-all');
-        Route::post('/notifications/{id}/read',  [NotificationController::class, 'read'])->name('tf-perspectives.notifications.read');
+
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/bookmark', [BookmarkController::class, 'index'])->name('bookmark.index');
+
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+        Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+
+
+        Route::prefix('{perspective}')->group(function () {
+            Route::patch('/', [PerspectiveController::class, 'update'])->name('update');
+            Route::post('/empathize', [EmpathyController::class, 'toggle'])->name('empathize');
+            Route::post('/react', [ReactionController::class, 'react'])->name('react');
+            Route::post('/bookmark', [BookmarkController::class, 'toggle'])->name('bookmark.toggle');
+            Route::post('/report', [ReportController::class, 'store'])->name('report');
+
+            Route::post('/shoes', [ShoeController::class, 'store'])
+                ->name('shoes.store');
+
+            Route::put('/shoes/{perspectiveShoe}', [ShoeController::class, 'update'])
+                ->name('shoes.update');
+            Route::delete('/shoes/{perspectiveShoe}', [ShoeController::class, 'destroy'])
+                ->name('shoes.destroy');
+
+            Route::post('/shoes/{perspectiveShoe}/discussions', [ShoeController::class, 'discuss'])
+                ->name('shoes.discussions.store');
+            Route::delete('/discussions/{discussion}', [ShoeController::class, 'destroyDiscussion'])
+                ->name('shoes.discussions.destroy');
+        });
+    });
+
+    Route::get('/categories', [PerspectiveCategoryController::class, 'index'])->name('categories');
+    Route::get('/categories/{slug}', [PerspectiveCategoryController::class, 'show'])->name('categories.show');
+
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+    Route::prefix('{perspective}')->group(function () {
+        Route::get('/', [PerspectiveController::class, 'show'])->name('show');
     });
 });

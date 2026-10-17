@@ -1,18 +1,26 @@
 // packages/truvoicer/tf-perspectives/resources/js/components/Layout.tsx
-import { useState, type ReactNode } from 'react';
-import { Link, usePage } from '@inertiajs/react';
 import {
-    Container, Navbar, Nav, Dropdown, Badge, Button,
-} from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faBell, faBookmark, faCompass, faHouse, faLayerGroup,
-    faMagnifyingGlass, faPlus, faRightFromBracket, faUser,
+    faBell,
+    faBookmark,
+    faCompass,
     faGaugeHigh,
+    faHouse,
+    faLayerGroup,
+    faMagnifyingGlass,
+    faPlus,
+    faRightFromBracket,
+    faShoePrints,
+    faUser,
 } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '../hooks/useAuth';
-import type { SharedProps } from '../types';
-import { ComposerModal } from './ComposerModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Link, usePage } from '@inertiajs/react';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
+import { useState, type ReactNode } from 'react';
+import { Badge, Button, Container, Dropdown, Nav, Navbar } from 'react-bootstrap';
+import { route } from 'ziggy-js';
+import { SharedProps } from '../../types/perspectives';
+import { ComposerModal } from './composer-modal';
+import { NotificationsDropdown } from './notiications-dropdown';
 
 interface LayoutProps {
     children: ReactNode;
@@ -20,24 +28,33 @@ interface LayoutProps {
     hero?: ReactNode;
 }
 
+/** Floating-ui strategy that positions dropdowns against the viewport. */
+const FIXED_POPPER = { strategy: 'fixed' as const };
+
 export default function Layout({ children, hero }: LayoutProps) {
     const { user } = useAuth();
     const page = usePage<SharedProps>();
     const { url, props } = page;
+
     const flash = props.flash;
     const unread = props.unread_notifications ?? 0;
+
     const [composerOpen, setComposerOpen] = useState(false);
 
-    const isActive = (path: string) =>
-        url === path || url.startsWith(`${path}/`);
+    const isActive = (path: string) => url === path || url.startsWith(`${path}/`);
+
+    // `user` comes back wrapped in a data envelope from the shared props.
+    // Keep a couple of locals so the JSX below stays readable.
+    const me = user?.data ?? null;
+    const initial = me?.full_name?.charAt(0).toUpperCase() ?? '';
 
     return (
         <div className="tf-shell">
             <Navbar expand="lg" className="tf-navbar" sticky="top">
                 <Container>
-                    <Navbar.Brand as={Link} href="/" className="tf-brand">
+                    <Navbar.Brand as={Link} href={route('perspectives.index')} className="tf-brand">
                         <span className="tf-brand-mark">
-                            <FontAwesomeIcon icon={faShoePrintsStub} />
+                            <FontAwesomeIcon icon={faShoePrints} />
                         </span>
                         <span className="tf-brand-text">
                             <strong>Other Shoes</strong>
@@ -45,29 +62,89 @@ export default function Layout({ children, hero }: LayoutProps) {
                         </span>
                     </Navbar.Brand>
 
-                    <Navbar.Toggle aria-controls="tf-nav" />
-                    <Navbar.Collapse id="tf-nav">
-                        <Nav className="me-auto">
-                            <Nav.Link as={Link} href="/"
-                                className={url === '/' ? 'active' : ''}>
-                                <FontAwesomeIcon icon={faHouse} className="me-2" />
-                                Feed
-                            </Nav.Link>
-                            <Nav.Link as={Link} href="/categories"
-                                className={isActive('/categories') ? 'active' : ''}>
-                                <FontAwesomeIcon icon={faLayerGroup} className="me-2" />
-                                Categories
-                            </Nav.Link>
-                            <Nav.Link as={Link} href="/search"
-                                className={isActive('/search') ? 'active' : ''}>
-                                <FontAwesomeIcon icon={faMagnifyingGlass} className="me-2" />
-                                Search
-                            </Nav.Link>
-                        </Nav>
+                    {/*
+                     * Bell + avatar live OUTSIDE the collapse so they're
+                     * always reachable on mobile and never inherit the
+                     * animated collapse's containing block.
+                     */}
+                    {me && (
+                        <div className="tf-nav-actions order-lg-3 d-flex align-items-center gap-2">
+                            <Dropdown align="end" popperConfig={FIXED_POPPER}>
+                                <Dropdown.Toggle as="button" className="tf-icon-btn position-relative" aria-label="Notifications">
+                                    <FontAwesomeIcon icon={faBell} />
+                                    {unread > 0 && (
+                                        <Badge bg="danger" pill className="tf-badge-dot">
+                                            {unread > 9 ? '9+' : unread}
+                                        </Badge>
+                                    )}
+                                </Dropdown.Toggle>
+                                <NotificationsDropdown />
+                            </Dropdown>
 
-                        <div className="d-flex align-items-center gap-2">
-                            {user ? (
-                                <>
+                            <Dropdown align="end" popperConfig={FIXED_POPPER}>
+                                <Dropdown.Toggle as="button" className="tf-avatar-btn" id="user-menu" aria-label="Account menu">
+                                    <span className="tf-avatar tf-avatar-sm">{initial}</span>
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu className="tf-dropdown">
+                                    <Dropdown.Header>
+                                        Signed in as <strong>{me.full_name}</strong>
+                                    </Dropdown.Header>
+                                    <Dropdown.Divider />
+                                    <Dropdown.Item as={Link} href={route('perspectives.profile', { user: me.id })}>
+                                        <FontAwesomeIcon icon={faUser} className="me-2" />
+                                        My profile
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={Link} href={route('perspectives.dashboard')}>
+                                        <FontAwesomeIcon icon={faGaugeHigh} className="me-2" />
+                                        Dashboard
+                                    </Dropdown.Item>
+                                    <Dropdown.Item as={Link} href={route('perspectives.bookmark.index')}>
+                                        <FontAwesomeIcon icon={faBookmark} className="me-2" />
+                                        Bookmarks
+                                    </Dropdown.Item>
+                                    <Dropdown.Divider />
+                                    <Dropdown.Item as={Link} href={route('perspectives.logout')} method="post">
+                                        <FontAwesomeIcon icon={faRightFromBracket} className="me-2" />
+                                        Sign out
+                                    </Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </div>
+                    )}
+
+                    <Navbar.Toggle aria-controls="tf-nav" />
+
+                    <Navbar.Collapse id="tf-nav">
+                        <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center">
+                            <Nav className="me-auto order-2 order-lg-1">
+                                <Nav.Link
+                                    as={Link}
+                                    href={route('perspectives.index')}
+                                    className={isActive(route('perspectives.index')) ? 'active' : ''}
+                                >
+                                    <FontAwesomeIcon icon={faHouse} className="me-2" />
+                                    Feed
+                                </Nav.Link>
+                                <Nav.Link
+                                    as={Link}
+                                    href={route('perspectives.categories')}
+                                    className={isActive(route('perspectives.categories')) ? 'active' : ''}
+                                >
+                                    <FontAwesomeIcon icon={faLayerGroup} className="me-2" />
+                                    Categories
+                                </Nav.Link>
+                                <Nav.Link
+                                    as={Link}
+                                    href={route('perspectives.search')}
+                                    className={isActive(route('perspectives.search')) ? 'active' : ''}
+                                >
+                                    <FontAwesomeIcon icon={faMagnifyingGlass} className="me-2" />
+                                    Search
+                                </Nav.Link>
+                            </Nav>
+
+                            <div className="d-flex align-items-center gap-2 order-1 order-lg-2">
+                                {me ? (
                                     <Button
                                         variant="primary"
                                         size="sm"
@@ -77,78 +154,17 @@ export default function Layout({ children, hero }: LayoutProps) {
                                         <FontAwesomeIcon icon={faPlus} className="me-2" />
                                         New perspective
                                     </Button>
-
-                                    <Dropdown align="end">
-                                        <Dropdown.Toggle
-                                            as="button"
-                                            className="tf-icon-btn position-relative"
-                                        >
-                                            <FontAwesomeIcon icon={faBell} />
-                                            {unread > 0 && (
-                                                <Badge
-                                                    bg="danger"
-                                                    pill
-                                                    className="tf-badge-dot"
-                                                >
-                                                    {unread > 9 ? '9+' : unread}
-                                                </Badge>
-                                            )}
-                                        </Dropdown.Toggle>
-                                        <NotificationsDropdown />
-                                    </Dropdown>
-
-                                    <Dropdown align="end">
-                                        <Dropdown.Toggle
-                                            as="button"
-                                            className="tf-avatar-btn"
-                                            id="user-menu"
-                                        >
-                                            <span className="tf-avatar tf-avatar-sm">
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </span>
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu className="tf-dropdown">
-                                            <Dropdown.Header>
-                                                Signed in as <strong>{user.name}</strong>
-                                            </Dropdown.Header>
-                                            <Dropdown.Divider />
-                                            <Dropdown.Item as={Link} href={`/u/${user.handle}`}>
-                                                <FontAwesomeIcon icon={faUser} className="me-2" />
-                                                My profile
-                                            </Dropdown.Item>
-                                            <Dropdown.Item as={Link} href="/dashboard">
-                                                <FontAwesomeIcon icon={faGaugeHigh} className="me-2" />
-                                                Dashboard
-                                            </Dropdown.Item>
-                                            <Dropdown.Item as={Link} href="/bookmarks">
-                                                <FontAwesomeIcon icon={faBookmark} className="me-2" />
-                                                Bookmarks
-                                            </Dropdown.Item>
-                                            <Dropdown.Divider />
-                                            <Dropdown.Item as={Link} href="/logout" method="post">
-                                                <FontAwesomeIcon
-                                                    icon={faRightFromBracket}
-                                                    className="me-2"
-                                                />
-                                                Sign out
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                </>
-                            ) : (
-                                <>
-                                    <Nav.Link as={Link} href="/login">Sign in</Nav.Link>
-                                    <Button
-                                        as={Link as any}
-                                        href="/register"
-                                        variant="primary"
-                                        size="sm"
-                                        className="tf-btn-compose"
-                                    >
-                                        Join
-                                    </Button>
-                                </>
-                            )}
+                                ) : (
+                                    <>
+                                        <Nav.Link as={Link} href={route('perspectives.login')}>
+                                            Sign in
+                                        </Nav.Link>
+                                        <Link href={route('perspectives.register')} className="btn btn-primary btn-sm tf-btn-compose">
+                                            Join
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </Navbar.Collapse>
                 </Container>
@@ -157,12 +173,8 @@ export default function Layout({ children, hero }: LayoutProps) {
             {hero && <div className="tf-hero">{hero}</div>}
 
             <Container className="tf-main">
-                {flash?.success && (
-                    <div className="alert alert-success tf-flash">{flash.success}</div>
-                )}
-                {flash?.error && (
-                    <div className="alert alert-danger tf-flash">{flash.error}</div>
-                )}
+                {flash?.success && <div className="alert alert-success tf-flash">{flash.success}</div>}
+                {flash?.error && <div className="alert alert-danger tf-flash">{flash.error}</div>}
                 {children}
             </Container>
 
@@ -173,25 +185,14 @@ export default function Layout({ children, hero }: LayoutProps) {
                 </Container>
             </footer>
 
-            <ComposerModal
-                open={composerOpen}
-                onClose={() => setComposerOpen(false)}
-            />
+            <ComposerModal open={composerOpen} onClose={() => setComposerOpen(false)} />
 
-            {user && (
-                <Button
-                    variant="primary"
-                    className="tf-fab d-lg-none"
-                    onClick={() => setComposerOpen(true)}
-                    aria-label="New perspective"
-                >
+
+            {me && (
+                <Button variant="primary" className="tf-fab d-lg-none" onClick={() => setComposerOpen(true)} aria-label="New perspective">
                     <FontAwesomeIcon icon={faPlus} />
                 </Button>
             )}
         </div>
     );
 }
-
-// Small stub so we don't need to import faShoePrints twice
-import { faShoePrints } from '@fortawesome/free-solid-svg-icons';
-const faShoePrintsStub = faShoePrints;

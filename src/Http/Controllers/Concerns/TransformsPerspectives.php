@@ -4,6 +4,7 @@
 namespace Truvoicer\TfPerspectives\Http\Controllers\Concerns;
 
 use Truvoicer\TfPerspectives\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\User;
 
 trait TransformsPerspectives
 {
@@ -14,10 +15,11 @@ trait TransformsPerspectives
      */
     protected function transform(Perspective $p, ?int $viewerId = null): array
     {
-        $viewerId ??= auth()->id();
+        $viewerId ??= request()->user()?->id;
 
         // Anonymous posts hide the author unless you wrote it.
-        $showAuthor = ! $p->is_anonymous || ($viewerId && $viewerId === $p->user_id);
+        $showAuthor = ! $p->is_anonymous || ($viewerId !== null && $viewerId === $p->user_id);
+
 
         return [
             'id'             => $p->id,
@@ -28,11 +30,12 @@ trait TransformsPerspectives
             'body'           => $p->body,
             'mood'           => $p->mood,
             'is_anonymous'   => (bool) $p->is_anonymous,
+            'is_owner' => $viewerId !== null && $viewerId === $p->user_id,
             'author'         => $showAuthor && $p->relationLoaded('author') && $p->author
                 ? $this->transformAuthor($p->author)
                 : null,
             'category'       => $p->relationLoaded('category') && $p->category
-                ? $this->transformCategory($p->category)
+                ? $this->transformPerspectiveCategory($p->category)
                 : null,
             'tags'           => $p->relationLoaded('tags')
                 ? $p->tags->pluck('name')->values()->all()
@@ -42,21 +45,23 @@ trait TransformsPerspectives
             'bookmark_count' => (int) ($p->bookmarks_count ?? 0),
             'is_bookmarked'  => (bool) ($p->is_bookmarked ?? false),
             'can_branch'     => $p->depth < Perspective::MAX_DEPTH,
+            'view_count' => (int) ($p->views_count ?? 0),
             'created_at'     => optional($p->created_at)->toIso8601String(),
         ];
     }
 
-    protected function transformAuthor($user): array
+    protected function transformAuthor(User $user): array
     {
         return [
             'id'         => $user->id,
-            'name'       => $user->name,
-            'handle'     => $user->handle ?? 'user-'.$user->id,
-            'avatar_url' => $user->avatar_url ?? null,
+            'first_name' => $user->first_name,
+            'last_name'  => $user->last_name,
+            'display_name'     => $user->display_name ?? 'user-' . $user->id,
+            // 'avatar_url' => $user->avatar_url ?? null,
         ];
     }
 
-    protected function transformCategory($category): array
+    protected function transformPerspectiveCategory($category): array
     {
         return [
             'id'          => $category->id,
@@ -106,16 +111,16 @@ trait TransformsPerspectives
     {
         $query
             ->with([
-                'author:id,name,handle,avatar_url',
+                'author:id,first_name,last_name,display_name',
                 'category:id,name,slug,description,icon,color',
                 'tags:id,name',
                 'reactions:id,perspective_id,user_id,type',
             ])
-            ->withCount(['children', 'bookmarks']);
+            ->withCount(['children', 'bookmarks', 'views as views_count']);
 
         if ($viewerId) {
             $query->withExists([
-                'bookmarks as is_bookmarked' => fn ($q) => $q->where('user_id', $viewerId),
+                'bookmarks as is_bookmarked' => fn($q) => $q->where('user_id', $viewerId),
             ]);
         }
     }
@@ -131,8 +136,8 @@ trait TransformsPerspectives
         }
 
         $names = collect(explode(',', $raw))
-            ->map(fn ($t) => trim(strtolower($t)))
-            ->filter(fn ($t) => $t !== '' && preg_match('/^[a-z0-9-]+$/', $t))
+            ->map(fn($t) => trim(strtolower($t)))
+            ->filter(fn($t) => $t !== '' && preg_match('/^[a-z0-9-]+$/', $t))
             ->unique()
             ->take(5)
             ->values();

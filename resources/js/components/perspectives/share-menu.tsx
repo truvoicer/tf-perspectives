@@ -2,9 +2,12 @@
 import { Dropdown } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faLink, faShareNodes, faXTwitter, faFacebook,
+    faLink, faShareNodes,
 } from '@fortawesome/free-solid-svg-icons';
-import { useClipboard } from '../hooks/useClipboard';
+import {
+    faXTwitter, faFacebook,
+} from '@fortawesome/free-brands-svg-icons';
+import { useClipboard } from '../../hooks/use-clipboard';
 
 interface ShareMenuProps {
     url: string;

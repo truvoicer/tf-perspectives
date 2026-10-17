@@ -27,12 +27,13 @@ class PerspectiveBranched extends Notification
             'kind'                => 'branch',
             'actor'               => [
                 'id'     => $this->actor->id,
-                'name'   => $this->actor->name,
-                'handle' => $this->actor->handle ?? 'user-'.$this->actor->id,
+                'first_name'   => $this->actor->first_name,
+                'last_name'   => $this->actor->last_name,
+                'display_name' => $this->actor->display_name ?? 'user-'.$this->actor->id,
             ],
             'perspective_id'      => $this->perspective->id,
             'perspective_excerpt' => mb_substr($this->perspective->body, 0, 120),
-            'message'             => "{$this->actor->name} stepped into your shoes.",
+            'message'             => "{$this->actor->first_name} {$this->actor->last_name} stepped into your shoes.",
         ];
     }
 }

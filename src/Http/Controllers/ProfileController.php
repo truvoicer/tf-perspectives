@@ -8,18 +8,18 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Truvoicer\TfPerspectives\Http\Controllers\Concerns\TransformsPerspectives;
 use Truvoicer\TfPerspectives\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\User;
+use Truvoicer\TfPerspectives\Services\CategoryService;
 
 class ProfileController extends Controller
 {
     use TransformsPerspectives;
 
-    public function show(Request $request, string $handle): Response
+    public function show(Request $request, User $user): Response
     {
-        $viewerId = auth()->id();
+        $viewerId = request()->user()?->id;
 
-        $profile = \App\Models\User::query()
-            ->where('handle', $handle)
-            ->firstOrFail();
+        $profile = $user;
 
         $tab = (string) $request->input('tab', 'perspectives');
 
@@ -49,12 +49,14 @@ class ProfileController extends Controller
             ? $profile->followers()->where('follower_id', $viewerId)->exists()
             : false;
 
-        return Inertia::render('@tf-perspectives::profile/show', [
+        return Inertia::render('profile/show', [
+            'categories'   => CategoryService::getAllCategories(),
             'profile' => [
                 'id'               => $profile->id,
-                'name'             => $profile->name,
-                'handle'           => $profile->handle ?? 'user-'.$profile->id,
-                'avatar_url'       => $profile->avatar_url ?? null,
+                'first_name'             => $profile->first_name,
+                'last_name'              => $profile->last_name,
+                'display_name'           => $profile->display_name ?? 'user-'.$profile->id,
+                // 'avatar_url'       => $profile->avatar_url ?? null,
                 'bio'              => $profile->bio ?? null,
                 'is_following'     => $isFollowing,
                 'followers_count'  => $profile->followers()->count(),

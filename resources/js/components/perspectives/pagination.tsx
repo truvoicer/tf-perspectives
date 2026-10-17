@@ -1,6 +1,6 @@
 // packages/truvoicer/tf-perspectives/resources/js/components/Pagination.tsx
 import { Link } from '@inertiajs/react';
-import type { Paginator } from '../types';
+import type { Paginator } from '../../types/perspectives';
 
 interface PaginationProps<T> {
     paginator: Paginator<T>;

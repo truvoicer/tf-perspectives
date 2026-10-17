@@ -5,6 +5,7 @@ import {
     faShoePrints, faLightbulb, faHandshake, faCircleQuestion,
 } from '@fortawesome/free-solid-svg-icons';
 import type { ReactionSummary, ReactionType } from '../types';
+import { route } from 'ziggy-js';
 
 const REACTIONS: Array<{
     type: ReactionType; icon: any; label: string; tooltip: string;
@@ -25,7 +26,7 @@ interface ReactionBarProps {
 export function ReactionBar({ perspectiveId, summary, disabled, compact }: ReactionBarProps) {
     const react = (type: ReactionType) => {
         router.post(
-            `/perspectives/${perspectiveId}/react`,
+            route('perspectives.react', { perspective: perspectiveId }),
             { type },
             { preserveScroll: true, preserveState: true },
         );

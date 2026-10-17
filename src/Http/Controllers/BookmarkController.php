@@ -5,6 +5,7 @@ namespace Truvoicer\TfPerspectives\Http\Controllers;
 
 use Inertia\Inertia;
 use Inertia\Response;
+use Truvoicer\TfPerspectives\Services\CategoryService;
 use Truvoicer\TfPerspectives\Http\Controllers\Concerns\TransformsPerspectives;
 use Truvoicer\TfPerspectives\Models\Bookmark;
 use Truvoicer\TfPerspectives\Models\Perspective;
@@ -15,7 +16,7 @@ class BookmarkController extends Controller
 
     public function index()
     {
-        $viewerId = auth()->id();
+        $viewerId = request()->user()->id;
 
         $query = Perspective::query()
             ->whereIn('id', function ($sub) use ($viewerId) {
@@ -30,8 +31,9 @@ class BookmarkController extends Controller
         $paginator = $query->paginate(12)->withQueryString()
             ->through(fn (Perspective $p) => $this->transform($p, $viewerId));
 
-        return Inertia::render('@tf-perspectives::bookmarks', [
+        return Inertia::render('bookmarks', [
             'perspectives' => $paginator,
+            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 

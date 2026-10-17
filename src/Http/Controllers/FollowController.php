@@ -5,12 +5,13 @@ namespace Truvoicer\TfPerspectives\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Truvoicer\TfPerspectives\Notifications\UserFollowed;
+use App\Models\User;
 
 class FollowController extends Controller
 {
-    public function toggle(Request $request, string $handle)
+    public function toggle(Request $request, User $user)
     {
-        $profile = \App\Models\User::where('handle', $handle)->firstOrFail();
+        $profile = $user;
         $me      = $request->user();
 
         abort_if($profile->id === $me->id, 422, 'You cannot follow yourself.');

@@ -1,16 +1,16 @@
 // packages/truvoicer/tf-perspectives/resources/js/pages/search.tsx
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
+import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
 import { router } from '@inertiajs/react';
 import { Row, Col, Form, Button, Badge, Card } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faFilter, faXmark } from '@fortawesome/free-solid-svg-icons';
-import Layout from '../components/Layout';
-import { PerspectiveCard } from '../components/PerspectiveCard';
-import Pagination from '../components/Pagination';
-import EmptyState from '../components/EmptyState';
-import { useAuth } from '../hooks/useAuth';
-import { categoryIcon } from '../lib/icons';
-import type { Category, Paginator, Perspective } from '../types';
+import Layout from '../components/perspectives/layout';
+import { PerspectiveCard } from '../components/perspectives/perspective-card';
+import Pagination from '../components/perspectives/pagination';
+import EmptyState from '../components/perspectives/empty-state';
+import type { Category, Paginator, Perspective } from '../types/perspectives';
+import { route } from 'ziggy-js';
 
 interface SearchProps {
     perspectives: Paginator<Perspective>;
@@ -34,7 +34,7 @@ export default function Search({
 
     const apply = (overrides: Partial<typeof filters> = {}) => {
         router.get(
-            '/search',
+            route('perspectives.search'),
             {
                 q: q || undefined,
                 tag: tag || undefined,
@@ -47,7 +47,7 @@ export default function Search({
         );
     };
 
-    const submit = (e: FormEvent) => {
+    const submit = (e: SubmitEvent) => {
         e.preventDefault();
         apply();
     };
@@ -58,7 +58,7 @@ export default function Search({
         setMood('');
         setCategory('');
         setSort('recent');
-        router.get('/search', {}, { preserveScroll: true, preserveState: true });
+        router.get(route('perspectives.search'), {}, { preserveScroll: true, preserveState: true });
     };
 
     const hasFilters = Boolean(q || tag || mood || category);

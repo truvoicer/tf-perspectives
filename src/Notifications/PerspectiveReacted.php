@@ -35,12 +35,12 @@ class PerspectiveReacted extends Notification
             'kind'                => 'reaction',
             'actor'               => [
                 'id'     => $this->actor->id,
-                'name'   => $this->actor->name,
+                'name'   => $this->actor->display_name ?? $this->actor->first_name,
                 'handle' => $this->actor->handle ?? 'user-'.$this->actor->id,
             ],
             'perspective_id'      => $this->perspective->id,
             'perspective_excerpt' => mb_substr($this->perspective->body, 0, 120),
-            'message'             => "{$this->actor->name} {$labels[$this->type]}.",
+            'message'             => "{$this->actor->display_name} {$labels[$this->type]}.",
         ];
     }
 }

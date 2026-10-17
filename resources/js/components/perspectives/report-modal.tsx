@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { router } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
 const REASONS = [
     { value: 'spam', label: 'Spam or promotional' },
@@ -26,7 +27,7 @@ export function ReportModal({ open, perspectiveId, onClose }: ReportModalProps) 
         if (!perspectiveId) return;
         setBusy(true);
         router.post(
-            `/perspectives/${perspectiveId}/report`,
+            route('perspectives.report', { perspective: perspectiveId }),
             { reason, notes },
             {
                 preserveScroll: true,
