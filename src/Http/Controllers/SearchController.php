@@ -63,7 +63,6 @@ class SearchController extends Controller
 
         return Inertia::render('search', [
             'perspectives' => $paginator,
-            'categories'   => CategoryService::getAllCategories(),
             'popularTags'  => Tag::query()
                 ->withCount('perspectives')
                 ->orderByDesc('perspectives_count')

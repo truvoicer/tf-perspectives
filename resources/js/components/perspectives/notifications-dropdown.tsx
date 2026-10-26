@@ -1,22 +1,21 @@
-// packages/truvoicer/tf-perspectives/resources/js/components/NotificationsDropdown.tsx
+// packages/truvoicer/tf-perspectives/resources/js/components/perspectives/notifications-dropdown.tsx
+import { Link, usePage } from '@inertiajs/react';
 import { Dropdown } from 'react-bootstrap';
-import { Link } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBellSlash } from '@fortawesome/free-solid-svg-icons';
-import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
 import { timeAgo } from '../../lib/format';
-import { route } from 'ziggy-js';
 
 export function NotificationsDropdown() {
-    const { user } = useAuth();
-    const notifications = (user as any)?.notifications ?? []; // populated by controller
+    const { props } = usePage();
+    // Cast to any or define a proper SharedProps interface
+    const notifications = (props.latest_notifications as any[]) ?? [];
 
     return (
         <Dropdown.Menu className="tf-dropdown tf-notifications">
             <Dropdown.Header className="d-flex justify-content-between align-items-center">
                 <span>Notifications</span>
                 {notifications.length > 0 && (
-                    <Link href={route('perspectives.notifications')} className="small">
+                    <Link href="/perspectives/notifications" className="small text-decoration-none">
                         See all
                     </Link>
                 )}
@@ -28,18 +27,18 @@ export function NotificationsDropdown() {
                     <div>Nothing new yet.</div>
                 </div>
             ) : (
-                notifications.slice(0, 6).map((n: any) => (
+                notifications.map((n) => (
                     <Dropdown.Item
                         key={n.id}
                         as={Link}
-                        href={`/perspectives/${n.perspective_id}`}
+                        href={n.perspective_id ? `/perspectives/${n.perspective_id}` : '#'}
                     >
                         <div className="tf-notif">
                             <span className="tf-avatar tf-avatar-xs">
-                                {n.actor?.full_name?.charAt(0).toUpperCase() ?? '?'}
+                                {n.actor?.name?.charAt(0).toUpperCase() ?? '?'}
                             </span>
                             <div>
-                                <div>{n.message}</div>
+                                <div className="small">{n.message}</div>
                                 <small className="text-muted">{timeAgo(n.created_at)}</small>
                             </div>
                         </div>

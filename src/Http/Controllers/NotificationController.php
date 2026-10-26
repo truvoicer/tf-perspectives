@@ -10,7 +10,7 @@ use Truvoicer\TfPerspectives\Services\CategoryService;
 
 class NotificationController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
         $user = $request->user();
 
@@ -18,23 +18,19 @@ class NotificationController extends Controller
             ->latest()
             ->paginate(20)
             ->through(function ($n) {
-                $data = $n->data ?? [];
-
                 return [
-                    'id'                   => $n->id,
-                    'type'                 => $n->type,
-                    'read_at'              => optional($n->read_at)->toIso8601String(),
-                    'created_at'           => optional($n->created_at)->toIso8601String(),
-                    'actor'                => $data['actor'] ?? null,
-                    'perspective_id'       => $data['perspective_id'] ?? 0,
-                    'perspective_excerpt'  => $data['perspective_excerpt'] ?? '',
-                    'message'              => $data['message'] ?? 'New activity',
+                    'id'             => $n->id,
+                    'type'           => $n->data['kind'] ?? 'notification',
+                    'actor'          => $n->data['actor'] ?? null,
+                    'message'        => $n->data['message'] ?? 'New activity',
+                    'perspective_id' => $n->data['perspective_id'] ?? 0,
+                    'created_at'     => $n->created_at->toIso8601String(),
+                    'read_at'        => $n->read_at?->toIso8601String(),
                 ];
             });
 
-        return Inertia::render('notifications', [
+        return \Inertia\Inertia::render('@tf-perspectives::notifications', [
             'notifications' => $paginator,
-            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 

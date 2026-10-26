@@ -20,7 +20,7 @@ import { Badge, Button, Container, Dropdown, Nav, Navbar } from 'react-bootstrap
 import { route } from 'ziggy-js';
 import { SharedProps } from '../../types/perspectives';
 import { ComposerModal } from './composer-modal';
-import { NotificationsDropdown } from './notiications-dropdown';
+import { NotificationsDropdown } from './notifications-dropdown';
 
 interface LayoutProps {
     children: ReactNode;
@@ -47,12 +47,12 @@ export default function Layout({ children, hero }: LayoutProps) {
     // Keep a couple of locals so the JSX below stays readable.
     const me = user?.data ?? null;
     const initial = me?.full_name?.charAt(0).toUpperCase() ?? '';
-
+    console.log(props);
     return (
         <div className="tf-shell">
             <Navbar expand="lg" className="tf-navbar" sticky="top">
                 <Container>
-                    <Navbar.Brand as={Link} href={route('perspectives.index')} className="tf-brand">
+                    <Navbar.Brand as={Link} href={route('perspectives.index')} className="tf-brand order-1">
                         <span className="tf-brand-mark">
                             <FontAwesomeIcon icon={faShoePrints} />
                         </span>
@@ -62,13 +62,35 @@ export default function Layout({ children, hero }: LayoutProps) {
                         </span>
                     </Navbar.Brand>
 
+                    <div className="d-flex align-items-center gap-2 order-2 order-lg-4">
+                        {me ? (
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                className="tf-btn-compose d-none d-lg-inline-flex"
+                                onClick={() => setComposerOpen(true)}
+                            >
+                                <FontAwesomeIcon icon={faPlus} className="me-2" />
+                                New perspective
+                            </Button>
+                        ) : (
+                            <>
+                                <Nav.Link as={Link} href={route('perspectives.login')}>
+                                    Sign in
+                                </Nav.Link>
+                                <Link href={route('perspectives.register')} className="btn btn-primary btn-sm tf-btn-compose">
+                                    Join
+                                </Link>
+                            </>
+                        )}
+                    </div>
                     {/*
                      * Bell + avatar live OUTSIDE the collapse so they're
                      * always reachable on mobile and never inherit the
                      * animated collapse's containing block.
                      */}
                     {me && (
-                        <div className="tf-nav-actions order-lg-3 d-flex align-items-center gap-2">
+                        <div className="tf-nav-actions order-3 order-lg-3 d-flex align-items-center gap-2">
                             <Dropdown align="end" popperConfig={FIXED_POPPER}>
                                 <Dropdown.Toggle as="button" className="tf-icon-btn position-relative" aria-label="Notifications">
                                     <FontAwesomeIcon icon={faBell} />
@@ -103,7 +125,7 @@ export default function Layout({ children, hero }: LayoutProps) {
                                         Bookmarks
                                     </Dropdown.Item>
                                     <Dropdown.Divider />
-                                    <Dropdown.Item as={Link} href={route('perspectives.logout')} method="post">
+                                    <Dropdown.Item as={Link} href={route('logout')} method="post" data={{ auth_context: 'perspectives' }}>
                                         <FontAwesomeIcon icon={faRightFromBracket} className="me-2" />
                                         Sign out
                                     </Dropdown.Item>
@@ -112,11 +134,11 @@ export default function Layout({ children, hero }: LayoutProps) {
                         </div>
                     )}
 
-                    <Navbar.Toggle aria-controls="tf-nav" />
+                    <Navbar.Toggle aria-controls="tf-nav" className="order-3" />
 
-                    <Navbar.Collapse id="tf-nav">
+                    <Navbar.Collapse id="tf-nav" className="order-3 order-lg-2">
                         <div className="d-flex flex-column flex-lg-row align-items-start align-items-lg-center">
-                            <Nav className="me-auto order-2 order-lg-1">
+                            <Nav className="me-auto">
                                 <Nav.Link
                                     as={Link}
                                     href={route('perspectives.index')}
@@ -143,28 +165,6 @@ export default function Layout({ children, hero }: LayoutProps) {
                                 </Nav.Link>
                             </Nav>
 
-                            <div className="d-flex align-items-center gap-2 order-1 order-lg-2">
-                                {me ? (
-                                    <Button
-                                        variant="primary"
-                                        size="sm"
-                                        className="tf-btn-compose d-none d-lg-inline-flex"
-                                        onClick={() => setComposerOpen(true)}
-                                    >
-                                        <FontAwesomeIcon icon={faPlus} className="me-2" />
-                                        New perspective
-                                    </Button>
-                                ) : (
-                                    <>
-                                        <Nav.Link as={Link} href={route('perspectives.login')}>
-                                            Sign in
-                                        </Nav.Link>
-                                        <Link href={route('perspectives.register')} className="btn btn-primary btn-sm tf-btn-compose">
-                                            Join
-                                        </Link>
-                                    </>
-                                )}
-                            </div>
                         </div>
                     </Navbar.Collapse>
                 </Container>

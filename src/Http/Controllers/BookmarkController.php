@@ -33,7 +33,6 @@ class BookmarkController extends Controller
 
         return Inertia::render('bookmarks', [
             'perspectives' => $paginator,
-            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 

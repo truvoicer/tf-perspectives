@@ -78,7 +78,6 @@ class DashboardController extends Controller
                 'top_perspective'     => $topHydrated,
             ],
             'recent_activity' => $recentActivity,
-            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 }

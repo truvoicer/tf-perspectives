@@ -17,9 +17,7 @@ class PerspectiveCategoryController extends Controller
 
     public function index(): Response
     {
-        return Inertia::render('perspective-categories/index', [
-            'categories'   => CategoryService::getAllCategories(),
-        ]);
+        return Inertia::render('perspective-categories/index');
     }
 
     public function show(string $slug): Response
@@ -38,7 +36,6 @@ class PerspectiveCategoryController extends Controller
             ->through(fn (Perspective $p) => $this->transform($p, $viewerId));
 
         return Inertia::render('perspective-categories/show', [
-            'categories' => Inertia::optional(fn () => CategoryService::getAllCategories()),
             'category'     => $this->transformPerspectiveCategory($category),
             'perspectives' => $paginator,
         ]);

@@ -77,7 +77,6 @@ class PerspectiveController extends Controller
         return Inertia::render('feed', [
             'perspectives' => $paginator,
             'featured'     => $featuredOrdered,
-            'categories'   => CategoryService::getAllCategories(),
             'filters'      => ['q' => $search, 'tab' => $tab],
             'stats'        => [
                 'total_perspectives' => Perspective::count(),
@@ -157,7 +156,6 @@ class PerspectiveController extends Controller
             'rootId'       => $rootId,
             'maxDepth'     => Perspective::MAX_DEPTH,
             'perspectives' => $perspectives,
-            'categories'   => CategoryService::getAllCategories(),
         ]);
     }
 

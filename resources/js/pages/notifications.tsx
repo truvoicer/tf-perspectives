@@ -6,13 +6,22 @@ import { faBell, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../components/perspectives/layout';
 import EmptyState from '../components/perspectives/empty-state';
 import { timeAgo, initials } from '../lib/format';
-import type { NotificationItem } from '../types/perspectives';
 import { route } from 'ziggy-js';
+
+interface NotificationItem {
+    id: string;
+    type: string;
+    actor: { name: string } | null;
+    message: string;
+    perspective_id: number;
+    created_at: string;
+    read_at: string | null;
+}
 
 interface NotificationsProps {
     notifications: {
         data: NotificationItem[];
-        next_page_url: string | null;
+        links: { url: string | null; label: string; active: boolean }[];
         last_page: number;
         current_page: number;
     };
@@ -24,7 +33,7 @@ export default function Notifications({ notifications }: NotificationsProps) {
     };
 
     const markOne = (id: string) => {
-        router.post(route('perspectives.notifications.read', { notification: id }), {}, { preserveScroll: true });
+        router.post(route('perspectives.notifications.read', { id }), {}, { preserveScroll: true });
     };
 
     return (
@@ -55,25 +64,43 @@ export default function Notifications({ notifications }: NotificationsProps) {
                             <li
                                 key={n.id}
                                 className={`tf-notif-row ${!n.read_at ? 'is-unread' : ''}`}
-                                onClick={() => markOne(n.id)}
+                                onClick={() => !n.read_at && markOne(n.id)}
+                                style={{ cursor: n.read_at ? 'default' : 'pointer' }}
                             >
                                 <span className="tf-avatar tf-avatar-sm">
-                                    {initials(n.actor?.full_name)}
+                                    {initials(n.actor?.name)}
                                 </span>
                                 <div className="tf-notif-body">
-                                    <Link href={`/perspectives/${n.perspective_id}`}>
-                                        {n.message}
-                                    </Link>
+                                    {n.perspective_id ? (
+                                        <Link href={route('perspectives.show', { perspective: n.perspective_id })}>
+                                            {n.message}
+                                        </Link>
+                                    ) : (
+                                        <span>{n.message}</span>
+                                    )}
                                     <small className="text-muted">
                                         {timeAgo(n.created_at)}
                                     </small>
                                 </div>
-                                {!timeAgo(n.read_at) && (
+                                {!n.read_at && (
                                     <span className="tf-unread-dot" aria-hidden="true" />
                                 )}
                             </li>
                         ))}
                     </ul>
+                )}
+
+                {/* Simple Pagination */}
+                {notifications.last_page > 1 && (
+                    <div className="tf-pagination">
+                        {notifications.links.map((link, i) => (
+                            link.url ? (
+                                <Link key={i} href={link.url} className={`tf-page-link ${link.active ? 'is-active' : ''}`} dangerouslySetInnerHTML={{ __html: link.label }} />
+                            ) : (
+                                <span key={i} className="tf-page-link is-disabled" dangerouslySetInnerHTML={{ __html: link.label }} />
+                            )
+                        ))}
+                    </div>
                 )}
             </div>
         </Layout>

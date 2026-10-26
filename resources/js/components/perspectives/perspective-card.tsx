@@ -85,7 +85,7 @@ export function PerspectiveCard({
                     <div className="tf-card-tools">
                         {perspective.category && (
                             <Link
-                                href={`/categories/${perspective.category.slug}`}
+                                href={`/perspectives/categories/${perspective.category.slug}`}
                                 className="tf-cat-pill"
                                 style={{ ['--cat' as any]: perspective.category.color }}
                             >

@@ -52,7 +52,7 @@ return new class extends Migration
 
         // 3. Enforce NOT NULL + unique now that every row has a value.
         Schema::table('users', function (Blueprint $table) {
-            $table->string('display_name', 60)->nullable(false)->unique()->change();
+            $table->string('display_name', 60)->nullable()->unique()->change();
         });
     }
 

@@ -39,9 +39,10 @@ class ShoeController extends Controller
             $data['mood'] ?? null,
             (bool) ($data['is_anonymous'] ?? false),
         );
-
         // Notify the perspective author
         if ($perspective->user_id !== $request->user()->id) {
+
+                    dd($shoe, ($perspective->user_id === $request->user()->id));
             $perspective->author->notify(new ShoeAdded($shoe));
         }
         return redirect()->back();

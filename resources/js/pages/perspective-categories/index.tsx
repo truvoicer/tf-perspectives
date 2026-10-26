@@ -1,5 +1,5 @@
 // packages/truvoicer/tf-perspectives/resources/js/pages/categories/index.tsx
-import { Link } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Row, Col, Card } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLayerGroup } from '@fortawesome/free-solid-svg-icons';
@@ -7,12 +7,18 @@ import Layout from '../../components/perspectives/layout';
 import { categoryIcon } from '../../lib/icons';
 import type { Category } from '../../types/perspectives';
 import { route } from 'ziggy-js';
+import { useEffect } from 'react';
 
 interface CategoriesIndexProps {
     categories: Category[];
 }
 
-export default function CategoriesIndex({ categories }: CategoriesIndexProps) {
+export default function CategoriesIndex() {
+
+    const { categories } = usePage().props as unknown as { categories: Category[] };
+    useEffect(() => {
+        router.reload({ only: ['categories'] });
+    }, []);
     return (
         <Layout>
             <div className="tf-panel">
@@ -25,7 +31,7 @@ export default function CategoriesIndex({ categories }: CategoriesIndexProps) {
                 </p>
 
                 <Row className="g-3">
-                    {categories.map((c) => (
+                    {Array.isArray(categories) && categories.map((c) => (
                         <Col key={c.id} md={6} lg={4}>
                             <Link
                                 href={route('perspectives.categories.show', { slug: c.slug })}

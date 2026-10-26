@@ -50,7 +50,6 @@ class ProfileController extends Controller
             : false;
 
         return Inertia::render('profile/show', [
-            'categories'   => CategoryService::getAllCategories(),
             'profile' => [
                 'id'               => $profile->id,
                 'first_name'             => $profile->first_name,

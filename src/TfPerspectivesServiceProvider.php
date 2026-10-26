@@ -2,6 +2,7 @@
 
 namespace Truvoicer\TfPerspectives;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route as FacadesRoute;
@@ -36,12 +37,11 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
 
         // Merge package config
         $this->mergeConfigFrom(
-            __DIR__.'/../config/tf-perspectives.php',
+            __DIR__ . '/../config/tf-perspectives.php',
             'tf-perspectives'
         );
 
     }
-
 
     /**
      * Check if the given class string is a controller.
@@ -73,7 +73,7 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         $mainAppDisks = config('tf-perspectives.filesystems.disks', []);
 
         // Get existing disk configurations from the application
-        $packageConfig = require __DIR__.'/../config/tf-perspectives.php';
+        $packageConfig = require __DIR__ . '/../config/tf-perspectives.php';
         $packageDisks = (
             ! empty($packageConfig['filesystems']['disks']) &&
             is_array($packageConfig['filesystems']['disks'])
@@ -105,14 +105,16 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         $this->app['config']->set('tf-perspectives.path', $this->packagePath);
 
         $this->publishes([
-            __DIR__.'/../config/tf-perspectives.php' => config_path(
+            __DIR__ . '/../config/tf-perspectives.php' => config_path(
                 'tf-perspectives.php'
             ),
         ], 'tf-perspectives-config');
 
         $this->publishes([
-            __DIR__.'/Database/Migrations' => database_path('migrations'),
-        ], 'tf-perspectives-migrations');
+            __DIR__ . '/Database/Migrations' => database_path('migrations'),
+        ], 'tf-perspectives-migrations'
+        );
+        $this->bootMiddlewares();
 
         // Register view composers
         $this->registerViewComposers();
@@ -129,6 +131,16 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         $this->bootEventListeners();
         // Register broadcasting channels
         $this->bootBroadcasting();
+    }
+
+    public function bootMiddlewares(): void
+    {
+
+        /** @var Router $router */
+        // $router = $this->app['router'];
+
+        // $router->aliasMiddleware('inertia.tf-perspectives', HandleInertiaRequests::class);
+
     }
 
 
@@ -182,16 +194,18 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
 
     protected function bootRoutes(): void
     {
-        if (config('tf-perspectives.load_routes', true)) {
+        if (config('tf-perspectives.load_web_routes', true)) {
             FacadesRoute::middleware('web')
                 ->group(function () {
-                    $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+                    $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
                 });
-            FacadesRoute::prefix('api')
-                ->middleware('api')
-                ->group(function () {
-                    $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
-                });
+            if (config('tf-perspectives.load_api_routes', true)) {
+                FacadesRoute::prefix('api')
+                    ->middleware('api')
+                    ->group(function () {
+                        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+                    });
+            }
         }
     }
 
