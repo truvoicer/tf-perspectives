@@ -1,14 +1,22 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Button, Form } from 'react-bootstrap';
 import Layout from '../../components/perspectives/layout';
 import { route } from 'ziggy-js';
 
-export default function ForgotPassword({ status }: { status?: string }) {
+export default function ForgotPassword() {
     const { data, setData, post, processing, errors } = useForm({ email: '' });
+    const { props } = usePage<{ flash: { status?: string } }>();
+
+    // Read the status from the shared flash props
+    const status = props.flash?.status;
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('perspectives.password.email'));
+        post(route('password.email'), {
+            onSuccess: (page) => {
+                setData('email', '')
+            },
+        });
     };
 
     return (

@@ -2,6 +2,7 @@
 
 namespace Truvoicer\TfPerspectives;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Gate;
@@ -40,7 +41,6 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
             __DIR__ . '/../config/tf-perspectives.php',
             'tf-perspectives'
         );
-
     }
 
     /**
@@ -110,9 +110,11 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
             ),
         ], 'tf-perspectives-config');
 
-        $this->publishes([
-            __DIR__ . '/Database/Migrations' => database_path('migrations'),
-        ], 'tf-perspectives-migrations'
+        $this->publishes(
+            [
+                __DIR__ . '/Database/Migrations' => database_path('migrations'),
+            ],
+            'tf-perspectives-migrations'
         );
         $this->bootMiddlewares();
 
@@ -131,6 +133,21 @@ class TfPerspectivesServiceProvider extends PackageServiceProvider
         $this->bootEventListeners();
         // Register broadcasting channels
         $this->bootBroadcasting();
+        $this->bootFortify();
+
+    }
+
+    public function bootFortify(): void
+    {
+        ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
+            // Check if the request is coming from the perspectives context
+            $isPerspectives = request()->input('auth_context') === 'perspectives'
+                || request()->is('perspectives*')
+                || str_contains(request()->headers->get('referer', ''), '/perspectives');
+            $path = $isPerspectives ? 'perspectives/reset-password' : 'reset-password';
+
+            return url($path . '/' . $token . '?email=' . urlencode($notifiable->getEmailForPasswordReset()));
+        });
     }
 
     public function bootMiddlewares(): void

@@ -80,7 +80,7 @@ export default function Auth({ mode, status }: AuthProps) {
     useEffect(() => {
         if (!googleReady) return;
 
-        initOneTap({ autoPrompt: false });
+        initOneTap({ autoPrompt: false, authContext: 'perspectives' });
 
         if (googleBtnRef.current) {
             googleBtnRef.current.innerHTML = '';
@@ -254,7 +254,7 @@ export default function Auth({ mode, status }: AuthProps) {
                                     <button
                                         type="button"
                                         disabled={!fbReady}
-                                        onClick={() => facebookLogin()}
+                                        onClick={() => facebookLogin({authContext: 'perspectives'})}
                                         className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--card-border)] bg-[var(--bg-primary)] px-4 py-2.5 text-sm text-[var(--text-primary)] transition hover:border-[var(--app-primary-color)]/40 hover:bg-[var(--app-primary-color)]/5 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <svg className="h-5 w-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

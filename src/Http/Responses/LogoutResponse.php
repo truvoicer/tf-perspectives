@@ -10,10 +10,10 @@ class LogoutResponse extends ResponsesLogoutResponse
 {
     public function toResponse($request)
     {
-        return FortifyBindings::resolveResponseByRequestContext(self::responseMapping($request), $request);
+        return FortifyBindings::resolveResponseByRequestContext($this->responseMapping($request), $request);
     }
 
-    public static function responseMapping($request)
+    public function responseMapping($request)
     {
         return [
             ...parent::responseMapping($request),

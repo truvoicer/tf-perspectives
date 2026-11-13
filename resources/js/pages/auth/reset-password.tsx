@@ -13,7 +13,7 @@ export default function ResetPassword({ token, email }: { token: string, email: 
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('perspectives.password.update'));
+        post(route('password.update'));
     };
 
     return (

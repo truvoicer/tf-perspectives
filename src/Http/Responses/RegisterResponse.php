@@ -10,12 +10,9 @@ class RegisterResponse extends ResponsesRegisterResponse
 {
     public function toResponse($request)
     {
-        // return $request->wantsJson()
-        //     ? response()->json(['user' => $request->user()], 201)
-        //     : redirect()->intended(route('perspectives.index'));
-        return FortifyBindings::resolveResponseByRequestContext(self::responseMapping($request), $request);
+        return FortifyBindings::resolveResponseByRequestContext($this->responseMapping($request), $request);
     }
-    public static function responseMapping($request)
+    public function responseMapping($request)
     {
         return [
             ...parent::responseMapping($request),

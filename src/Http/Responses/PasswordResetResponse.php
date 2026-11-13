@@ -12,14 +12,11 @@ class PasswordResetResponse extends ResponsesPasswordResetResponse
 
     public function toResponse($request)
     {
-        // return $request->wantsJson()
-        //     ? response()->json(['message' => trans($this->status ?? 'passwords.reset')])
-        //     : redirect()->route('perspectives.login')->with('status', trans($this->status ?? 'passwords.reset'));
 
-        return FortifyBindings::resolveResponseByRequestContext(self::responseMapping($request), $request);
+        return FortifyBindings::resolveResponseByRequestContext($this->responseMapping($request), $request);
     }
 
-    public static function responseMapping($request)
+    public function responseMapping($request)
     {
         return [
             ...parent::responseMapping($request),
@@ -27,7 +24,6 @@ class PasswordResetResponse extends ResponsesPasswordResetResponse
                 if ($request->wantsJson() && ! $request->header('X-Inertia')) {
                     return response()->json(['message' => trans($this->status ?? 'passwords.reset')]);
                 }
-
                 return redirect()->route('perspectives.login')->with('status', trans($this->status ?? 'passwords.reset'));
             },
         ];

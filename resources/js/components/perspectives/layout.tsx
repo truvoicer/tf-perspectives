@@ -47,7 +47,7 @@ export default function Layout({ children, hero }: LayoutProps) {
     // Keep a couple of locals so the JSX below stays readable.
     const me = user?.data ?? null;
     const initial = me?.full_name?.charAt(0).toUpperCase() ?? '';
-    console.log(props);
+
     return (
         <div className="tf-shell">
             <Navbar expand="lg" className="tf-navbar" sticky="top">
