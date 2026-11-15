@@ -45,73 +45,12 @@ class PerspectiveController extends Controller
 
     public function show(Request $request, Perspective $perspective): Response
     {
-        $viewerId = $request->user()?->id;
         $rootId   = $perspective->rootId();
-
-        // Record a view of the root perspective the user opened.
-        \Truvoicer\TfPerspectives\Models\PerspectiveView::record(
-            $perspective,
-            $request->user(),
-        );
-
-        // ── 1. Fetch the thread (root + branches) ────────────────────────
-        $query = Perspective::query()
-            ->where(function (Builder $q) use ($rootId) {
-                $q->where('id', $rootId)->orWhere('root_id', $rootId);
-            })
-            ->orderBy('depth')
-            ->orderBy('id');
-
-        $this->withCardRelations($query, $viewerId);
-
-        // ── 2. Eager-load shoes for the root perspective only ────────────
-        //    We don't load shoes on every branch — a branch is already a
-        //    view, and shoes attach to the perspective (the root).
-        $query->with([
-            'shoes' => function ($q) use ($viewerId) {
-                // Ranked order: view-changers first, then most-reacted.
-                $q->with('author:id,first_name,last_name,display_name')
-                    ->ranked()
-                    ->with([
-                        'discussions' => function ($dq) {
-                            $dq->with('author:id,first_name,last_name,display_name')
-                                ->oldest('id');
-                        },
-                    ]);
-            },
-        ]);
-
-        // Only attach the shoes relation to the root. Branches shouldn't
-        // carry the root's shoes.
-        $query->where(function (Builder $q) use ($rootId) {
-            $q->where('id', $rootId)     // root gets shoes eager-loaded
-                ->orWhere('root_id', $rootId);
-        });
-
-        $perspectives = $query->get()
-            ->map(function (Perspective $p) use ($viewerId, $rootId) {
-                $transformed = $this->transform($p, $viewerId);
-
-                // Only the root perspective carries its shoes.
-                if ($p->id === $rootId && $p->relationLoaded('shoes')) {
-                    $transformed['shoes'] = $p->shoes
-                        ->map(fn($shoe) => $this->transformShoeWithDiscussions($shoe, $viewerId))
-                        ->values()
-                        ->all();
-                    $transformed['shoes_count'] = $p->shoes->count();
-                } else {
-                    $transformed['shoes'] = [];
-                    $transformed['shoes_count'] = 0;
-                }
-
-                return $transformed;
-            })
-            ->all();
 
         return Inertia::render('thread', [
             'rootId'       => $rootId,
             'maxDepth'     => Perspective::MAX_DEPTH,
-            'perspectives' => $perspectives,
+            'perspectives' => $this->perspectiveService->getPerspectiveThread($perspective, $request->user()),
         ]);
     }
 
@@ -207,57 +146,4 @@ class PerspectiveController extends Controller
     }
 
 
-    /**
-     * Transform a shoe along with its discussion tree.
-     *
-     * The discussions come back from the DB flat, ordered by id. We rebuild
-     * them into a nested tree here so the React side can just render
-     * `discussion.children` without any tree-building logic.
-     */
-    private function transformShoeWithDiscussions($shoe, ?int $viewerId): array
-    {
-        $transformed = $this->transformShoe($shoe, $viewerId);
-
-        $discussions = $shoe->relationLoaded('discussions')
-            ? $shoe->discussions
-            : collect();
-
-        $transformed['discussions'] = $this->buildDiscussionTree($discussions, $viewerId);
-
-        return $transformed;
-    }
-
-    /**
-     * Build a nested discussion tree from a flat collection.
-     *
-     * Returns an array of root-level discussions (parent_id === null), each
-     * with a `children` array populated recursively.
-     *
-     * @param  \Illuminate\Support\Collection<int, ShoeDiscussion>  $discussions
-     * @return array<int, array>
-     */
-    private function buildDiscussionTree($discussions, ?int $viewerId): array
-    {
-        // First pass: transform every node and stash it by id.
-        $nodes = [];
-        foreach ($discussions as $discussion) {
-            $nodes[$discussion->id] = array_merge(
-                $this->transformDiscussion($discussion, $viewerId),
-                ['children' => []],
-            );
-        }
-
-        // Second pass: hang children off parents.
-        $tree = [];
-        foreach ($nodes as $id => &$node) {
-            if ($node['parent_id'] !== null && isset($nodes[$node['parent_id']])) {
-                $nodes[$node['parent_id']]['children'][] = &$node;
-            } else {
-                $tree[] = &$node;
-            }
-        }
-        unset($node);
-
-        return $tree;
-    }
 }

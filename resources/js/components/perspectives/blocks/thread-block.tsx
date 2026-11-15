@@ -1,6 +1,6 @@
 // packages/truvoicer/tf-perspectives/resources/js/components/perspectives/blocks/thread-block.tsx
-import { useMemo, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faShoePrints } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../../../components/perspectives/layout';
@@ -96,14 +96,17 @@ function Branch({
     );
 }
 
-export default function ThreadBlock({ perspectives, categories = [] }: ThreadProps) {
+export default function ThreadBlock() {
     const { user } = useAuth();
+    const { perspectives, categories } = usePage<{ perspectives: Perspective[] }>().props;
     const [branchingId, setBranchingId] = useState<number | null>(null);
     const [reportId, setReportId] = useState<number | null>(null);
     const [editing, setEditing] = useState<Perspective | null>(null);
 
     const tree = useMemo(() => buildTree(perspectives), [perspectives]);
-
+    useEffect(() => {
+        router.reload({only: ['categories']});
+    }, []);
     if (!tree) {
         return (
             <Layout>
@@ -119,7 +122,7 @@ export default function ThreadBlock({ perspectives, categories = [] }: ThreadPro
     }
 
     return (
-        <Layout>
+        <>
             <Link href={route('perspectives.index')} className="tf-back">
                 <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                 All perspectives
@@ -153,6 +156,6 @@ export default function ThreadBlock({ perspectives, categories = [] }: ThreadPro
                 onClose={() => setEditing(null)}
                 editing={editing}
             />
-        </Layout>
+        </>
     );
 }
