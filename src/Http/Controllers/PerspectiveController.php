@@ -14,76 +14,32 @@ use Truvoicer\TfPerspectives\Models\PerspectiveCategory;
 use Truvoicer\TfPerspectives\Models\Perspective;
 use Truvoicer\TfPerspectives\Models\ShoeDiscussion;
 use Truvoicer\TfPerspectives\Services\CategoryService;
+use Truvoicer\TfPerspectives\Services\PerspectiveService;
 
 class PerspectiveController extends Controller
 {
     use TransformsPerspectives;
     use TransformsShoes;
 
+    public function __construct(
+        protected PerspectiveService $perspectiveService
+    ) {}
+
 
     public function index(Request $request): Response
     {
-        $viewerId = $request->user()?->id;
-        $tab      = (string) $request->input('tab', 'latest');
-        $search   = (string) $request->input('q', '');
-
-        $query = Perspective::query()
-            ->whereNull('parent_id')
-            ->when($search !== '', function (Builder $q) use ($search) {
-                $q->where(function (Builder $inner) use ($search) {
-                    $inner->where('body', 'like', "%{$search}%")
-                        ->orWhere('voice', 'like', "%{$search}%");
-                });
-            });
-
-        match ($tab) {
-            'trending'  => $query->withCount('reactions')->orderByDesc('reactions_count')
-                ->orderByDesc('id'),
-            'featured'  => $query->where('is_featured', true)->latest('id'),
-            'following' => $viewerId
-                ? $query->whereIn('user_id', function ($sub) use ($viewerId) {
-                    $sub->select('followed_id')
-                        ->from('follows')
-                        ->where('follower_id', $viewerId);
-                })->latest('id')
-                : $query->whereRaw('1 = 0'),
-            default     => $query->latest('id'),
-        };
-
-        $this->withCardRelations($query, $viewerId);
-
-        $paginator = $query->paginate(12)->withQueryString()
-            ->through(fn(Perspective $p) => $this->transform($p, $viewerId));
-
-        $featured = Perspective::query()
-            ->whereNull('parent_id')
-            ->where('is_featured', true)
-            ->when($viewerId, fn($q) => $q->where('user_id', '!=', $viewerId))
-            ->withCount('reactions')
-            ->orderByDesc('reactions_count')
-            ->limit(3)
-            ->get();
-
-        $featuredQuery = Perspective::query()->whereIn('id', $featured->pluck('id'));
-        $this->withCardRelations($featuredQuery, $viewerId);
-        $featuredHydrated = $featuredQuery->get()->keyBy('id');
-        $featuredOrdered  = $featured->pluck('id')
-            ->map(fn($id) => $featuredHydrated->get($id))
-            ->filter()
-            ->map(fn(Perspective $p) => $this->transform($p, $viewerId))
-            ->values()
-            ->all();
+        $search = $request->input('q', '');
+        $tab = $request->input('tab', 'default');
 
         return Inertia::render('feed', [
-            'perspectives' => $paginator,
-            'featured'     => $featuredOrdered,
+            'perspectives' => $this->perspectiveService->setPaginate(true)->fetchPerspectives(
+                $request->user(),
+                $search ?? '',
+                $tab ?? 'default'
+            ),
             'filters'      => ['q' => $search, 'tab' => $tab],
-            'stats'        => [
-                'total_perspectives' => Perspective::count(),
-                'total_branches'     => Perspective::whereNotNull('parent_id')->count(),
-                'total_voices'       => Perspective::distinct('user_id')->count('user_id'),
-                'today'              => Perspective::where('created_at', '>=', now()->startOfDay())->count(),
-            ],
+            'featured'     => $this->perspectiveService->setPaginate(true)->setLimit(5)->getFeaturedPerspectives($request->user()),
+            'stats'        => $this->perspectiveService->getPerspectiveStats(),
         ]);
     }
 

@@ -3,15 +3,18 @@ import { Link } from '@inertiajs/react';
 import type { Paginator } from '../../types/perspectives';
 
 interface PaginationProps<T> {
-    paginator: Paginator<T>;
+    paginator?: Paginator<T> | null;
 }
 
 export default function Pagination<T>({ paginator }: PaginationProps<T>) {
-    if (paginator.last_page <= 1) return null;
+    if (!paginator) return null;
+
+    const { last_page, links } = paginator;
+    if (last_page <= 1) return null;
 
     return (
         <nav className="tf-pagination" aria-label="Pagination">
-            {paginator.links.map((link, index) => {
+            {links.map((link, index) => {
                 const label = link.label
                     .replace('&laquo;', '‹').replace('&raquo;', '›')
                     .replace('&hellip;', '…');

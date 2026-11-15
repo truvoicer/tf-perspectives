@@ -13,6 +13,7 @@ enum Block: string
     case PERSPECTIVES_FEATURED = 'perspectives_featured';
     case PERSPECTIVES_FEED = 'perspectives_feed';
     case PERSPECTIVES_STATS = 'perspectives_stats';
+    case PERSPECTIVES_THREAD = 'perspectives_thread';
 
     public function label(): string
     {
@@ -21,6 +22,7 @@ enum Block: string
             self::PERSPECTIVES_FEATURED => 'Perspectives Featured',
             self::PERSPECTIVES_FEED => 'Perspectives Feed',
             self::PERSPECTIVES_STATS => 'Perspectives Stats',
+            self::PERSPECTIVES_THREAD => 'Perspectives Thread',
         };
     }
 
@@ -50,6 +52,13 @@ enum Block: string
                 'id' => '',
             ],
             self::PERSPECTIVES_STATS => [
+                'page_number' => 1,
+                'page_size' => 10,
+                'sort_by' => 'created_at',
+                'sort_order' => 'desc',
+                'id' => '',
+            ],
+            self::PERSPECTIVES_THREAD => [
                 'page_number' => 1,
                 'page_size' => 10,
                 'sort_by' => 'created_at',
@@ -132,6 +141,14 @@ enum Block: string
                 'id' => ['sometimes', 'string'],
                 ...$this->stylingValidationRules(),
             ],
+            self::PERSPECTIVES_THREAD => [
+                'page_number' => ['sometimes', 'integer', 'min:1'],
+                'page_size' => ['sometimes', 'integer', 'min:1', 'max:100'],
+                'sort_by' => ['sometimes', 'string'],
+                'sort_order' => ['sometimes', 'in:asc,desc'],
+                'id' => ['sometimes', 'string'],
+                ...$this->stylingValidationRules(),
+            ],
         };
 
         return [...$this->sharedValidationRules(), ...$rules];
@@ -143,6 +160,7 @@ enum Block: string
             self::PERSPECTIVES_FEATURED,
             self::PERSPECTIVES_FEED,
             self::PERSPECTIVES_STATS,
+            self::PERSPECTIVES_THREAD,
             self::PERSPECTIVES_CATEGORY => []
         };
     }

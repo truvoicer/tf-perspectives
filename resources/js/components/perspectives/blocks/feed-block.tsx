@@ -1,9 +1,9 @@
-import { faClock, faFire, faShoePrints, faStar, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faFire, faPlus, faShoePrints, faStar, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
 import { useState } from 'react';
-import { Nav, Tab } from 'react-bootstrap';
+import { Badge, Button, Tab, Dropdown, Nav, Navbar } from 'react-bootstrap';
 import { route } from 'ziggy-js';
 import { ComposerModal } from '../../../components/perspectives/composer-modal';
 import EmptyState from '../../../components/perspectives/empty-state';
@@ -17,27 +17,26 @@ interface FeedBlockProps {
     filters: { q: string; tab: string };
 }
 
-export default function FeedBlock({ perspectives, filters }: FeedBlockProps) {
+export default function FeedBlock(props: FeedBlockProps) {
     const { user } = useAuth();
+
+    const { perspectives, filters } = usePage<{ perspectives: Paginator<Perspective>; filters: { q: string; tab: string } }>().props;
     const [reportId, setReportId] = useState<number | null>(null);
 
     const [editing, setEditing] = useState<Perspective | null>(null);
+    const [composerOpen, setComposerOpen] = useState(false);
 
-    const tab = filters.tab || 'latest';
+    const tab = filters?.tab || 'latest';
 
     const switchTab = (next: string) => {
-        router.get(
-            route('perspectives.index'),
-            { ...filters, tab: next },
-            {
-                preserveScroll: true,
-                preserveState: true,
-            },
-        );
+        router.reload({
+            data: { ...filters, tab: next },
+        });
     };
 
     return (
         <div className="tf-panel">
+            <div className="d-flex justify-content-between align-items-center">
             <Tab.Container activeKey={tab} onSelect={(k) => k && switchTab(k)}>
                 <Nav variant="pills" className="tf-tabs mb-3">
                     <Nav.Item>
@@ -68,8 +67,12 @@ export default function FeedBlock({ perspectives, filters }: FeedBlockProps) {
                     )}
                 </Nav>
             </Tab.Container>
+            <Button variant="primary" className="" onClick={() => setComposerOpen(true)} aria-label="New perspective">
+                    <FontAwesomeIcon icon={faPlus} />
+                </Button>
+            </div>
 
-            {perspectives.data.length === 0 ? (
+            {Array.isArray(perspectives?.data) && perspectives.data.length === 0 ? (
                 <EmptyState
                     icon={faShoePrints}
                     title="No perspectives yet"
@@ -81,7 +84,7 @@ export default function FeedBlock({ perspectives, filters }: FeedBlockProps) {
                 />
             ) : (
                 <div className="tf-feed">
-                    {perspectives.data.map((p) => (
+                    {Array.isArray(perspectives?.data) && perspectives.data.map((p) => (
                         <PerspectiveCard
                             key={p.id}
                             perspective={p}
@@ -96,7 +99,7 @@ export default function FeedBlock({ perspectives, filters }: FeedBlockProps) {
 
             <Pagination paginator={perspectives} />
 
-            <ComposerModal open={editing !== null} onClose={() => setEditing(null)} editing={editing} />
+            <ComposerModal open={composerOpen} onClose={() => setComposerOpen(false)} editing={editing} />
             <ReportModal open={reportId !== null} perspectiveId={reportId} onClose={() => setReportId(null)} />
         </div>
     );

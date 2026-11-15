@@ -14,6 +14,7 @@ import { ReportModal } from '../components/perspectives/report-modal';
 import { categoryIcon } from '../lib/icons';
 import type { Category, Paginator, Perspective } from '../types/perspectives';
 import { ComposerModal } from '../components/perspectives/composer-modal';
+import FeaturedBlock from '../components/perspectives/blocks/featured-block';
 
 interface FeedProps {
     perspectives: Paginator<Perspective>;
@@ -144,25 +145,7 @@ export default function Feed({ perspectives, featured = [], categories = [], fil
                 </Col>
 
                 <Col lg={4}>
-                    {featured.length > 0 && (
-                        <div className="tf-panel tf-panel-side">
-                            <h3 className="tf-side-title">
-                                <FontAwesomeIcon icon={faStar} className="me-2" />
-                                Featured this week
-                            </h3>
-                            <div className="tf-side-list">
-                                {featured.map((p) => (
-                                    <Link key={p.id} href={`/perspectives/${p.id}`} className="tf-side-item">
-                                        <span className="tf-avatar tf-avatar-sm">{(p.author?.full_name ?? '?').charAt(0).toUpperCase()}</span>
-                                        <div>
-                                            <strong>{p.voice ?? p.author?.full_name}</strong>
-                                            <p>{p.body.slice(0, 90)}…</p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    <FeaturedBlock />
 
                     {categories.length > 0 && (
                         <div className="tf-panel tf-panel-side">
