@@ -5,15 +5,15 @@ namespace Truvoicer\TfPerspectives\Services\Page\Block;
 use Inertia\Inertia;
 use Truvoicer\TruFetcherCore\Models\Page;
 use Truvoicer\TruFetcherCore\Models\PageColumnBlock;
-use Truvoicer\TruFetcherCore\Services\Page\Block\PageBlock;
 
-class PerspectivesCategoryBlock extends PageBlock
+class PerspectivesCategoryBlock extends PerspectivesBlock
 {
     public function inertiaDependencies(
         PageColumnBlock $block,
         Page $page,
     ): array {
 
+        $data = $block->getData();
         return [
             'user' => Inertia::optional(
                 function () {
@@ -22,6 +22,7 @@ class PerspectivesCategoryBlock extends PageBlock
                     return $user ? $this->userResource::make($user) : null;
                 }
             ),
+            ...$this->buildPermalinks($data),
         ];
     }
 
@@ -31,8 +32,10 @@ class PerspectivesCategoryBlock extends PageBlock
     ): array {
         $user = $this->getUser();
 
+        $data = $block->getData();
         return [
             'user' => $user ? $this->userResource::make($user) : null,
+            ...$this->buildPermalinks($data),
         ];
     }
 
@@ -40,5 +43,21 @@ class PerspectivesCategoryBlock extends PageBlock
         PageColumnBlock $block,
     ): array {
         return [];
+    }
+
+    public function parseData(
+        PageColumnBlock $block,
+    ): array {
+        $data = parent::parseData($block);
+        $pageTypes = [
+            'thread_page',
+            'feed_page',
+            'categories_page',
+            'category_thread_page',
+            'search_page',
+            'search_results_page',
+        ];
+
+        return $this->parsePageTypes($data, $pageTypes);
     }
 }

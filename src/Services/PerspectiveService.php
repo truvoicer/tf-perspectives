@@ -12,6 +12,7 @@ use Truvoicer\TfPerspectives\Http\Controllers\Concerns\TransformsShoes;
 use Truvoicer\TfPerspectives\Models\Perspective;
 use Truvoicer\TfPerspectives\Models\PerspectiveCategory;
 use Truvoicer\TfPerspectives\Models\ShoeDiscussion;
+use Truvoicer\TfPerspectives\Models\Tag;
 use Truvoicer\TfPerspectives\Models\User;
 
 class PerspectiveService
@@ -320,5 +321,92 @@ class PerspectiveService
         unset($node);
 
         return $tree;
+    }
+
+
+    public function search(?User $user, ?array $filters = [])
+    {
+        $viewerId = $user?->id;
+
+        $query = $this->searchQuery($user, $filters);
+        if ($this->paginate) {
+            $result = $this->page
+                ? $query->paginate($this->perPage, ['*'], 'page', $this->page)
+                : $query->paginate($this->perPage);
+        } else {
+            $result = $this->limit
+                ? $query->limit($this->limit)->get()
+                : $query->get();
+        }
+
+        return $result->through(fn (Perspective $p) => $this->transform($p, $viewerId));
+    }
+
+    public function searchQuery(?User $user, ?array $filters = [])
+    {
+        $viewerId = $user?->id;
+
+        $q        = trim((string) ($filters['q'] ?? ''));
+        $tag      = trim((string) ($filters['tag'] ?? ''));
+        $mood     = (string) ($filters['mood'] ?? '');
+        $category = (string) ($filters['category'] ?? '');
+        $sort     = (string) ($filters['sort'] ?? 'recent');
+
+        $query = Perspective::query()->whereNull('parent_id');
+
+        if ($q !== '') {
+            $query->where(function (Builder $inner) use ($q) {
+                $inner->where('body', 'like', "%{$q}%")
+                      ->orWhere('voice', 'like', "%{$q}%")
+                      ->orWhereHas('author', fn (Builder $a) => $a->where('name', 'like', "%{$q}%"))
+                      ->orWhereHas('tags', fn (Builder $t) => $t->where('name', 'like', "%{$q}%"));
+            });
+        }
+
+        if ($tag !== '') {
+            $query->whereHas('tags', fn (Builder $t) => $t->where('name', $tag));
+        }
+
+        if ($mood !== '') {
+            $query->where('mood', $mood);
+        }
+
+        if ($category !== '') {
+            $query->whereHas('category', fn (Builder $c) => $c->where('slug', $category));
+        }
+
+        match ($sort) {
+            'popular'  => $query->withCount('reactions')->orderByDesc('reactions_count')->orderByDesc('id'),
+            'branched' => $query->withCount('children')->orderByDesc('children_count')->orderByDesc('id'),
+            default    => $query->latest('id'),
+        };
+
+        $this->withCardRelations($query, $viewerId);
+        return $query;
+
+    }
+
+    public function popularTags()
+    {
+        $query = $this->popularTagsQuery();
+        if ($this->paginate) {
+            $result = $this->page
+                ? $query->paginate($this->perPage, ['*'], 'page', $this->page)
+                : $query->paginate($this->perPage);
+        } else {
+            $result = $this->limit
+                ? $query->limit($this->limit)->get()
+                : $query->get();
+        }
+
+            return $result;
+    }
+
+    public function popularTagsQuery()
+    {
+        return Tag::query()
+            ->withCount('perspectives')
+            ->orderByDesc('perspectives_count')
+            ->limit(12);
     }
 }

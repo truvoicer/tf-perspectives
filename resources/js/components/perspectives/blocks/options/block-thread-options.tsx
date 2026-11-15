@@ -1,22 +1,31 @@
 import { usePage } from '@inertiajs/react';
-
-import { BlockOptionsSharedProps, TextInput, useAuthContext, useToastContext } from '@truvoicer/tru-fetcher-core-ui';
-
+import {
+    BlockOptionsSharedProps,
+    NiceSelectDropdown,
+    TextInput,
+    useAuthContext,
+    useToastContext,
+} from '@truvoicer/tru-fetcher-core-ui';
 import { AppMiddleware } from '@truvoicer/tru-fetcher-core-ui/lib';
-import { FetcherListPageBlock } from '@truvoicer/tru-fetcher-core-ui/types';
+import { ThreadOptionsBlock } from '../../../../types/page-block';
+import SharedPageSelectOptions from './common/shared-page-select-options';
+
 export interface BlockThreadOptionsProps extends BlockOptionsSharedProps {}
 function BlockThreadOptions({ block, columnBlockDeleteFileRequest, columnBlockFileStoreRequest }: BlockThreadOptionsProps) {
-    const data = block?.data as FetcherListPageBlock;
+
+    const data = block?.data as ThreadOptionsBlock;
     const schema = block?.schema;
     const errors = block?.errors;
 
     const auth = useAuthContext();
     const page = usePage();
 
+
     const toastProvider = useToastContext();
     const middleware = new AppMiddleware(page);
     middleware.setToastProvider(toastProvider).setAuthProvider(auth);
 
+    console.log({data});
     return (
         <div className="row align-items-center">
             <div className="col-12">
@@ -112,6 +121,13 @@ function BlockThreadOptions({ block, columnBlockDeleteFileRequest, columnBlockFi
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    <div className="card-header">Page</div>
+                    <div className="card-body">
+                        <SharedPageSelectOptions
+                            block={block}
+                        />
                     </div>
                 </div>
             </div>

@@ -11,6 +11,7 @@ import { ReportModal } from '../../../components/perspectives/report-modal';
 import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
 import type { Category, Perspective, PerspectiveNode } from '../../../types/perspectives';
 import { route } from 'ziggy-js';
+import { UrlBuilder } from '../../../lib/url-builder';
 
 interface ThreadProps {
     rootId: number;
@@ -42,6 +43,12 @@ function Branch({
     onReport,
     onEdit,
     categories,
+    threadPagePermalink,
+    feedPagePermalink,
+    categoryThreadPagePermalink,
+    categoriesPagePermalink,
+    searchPagePermalink,
+    searchResultsPagePermalink,
 }: {
     node: PerspectiveNode;
     branchingId: number | null;
@@ -50,6 +57,12 @@ function Branch({
     onReport: (id: number) => void;
     onEdit: (perspective: Perspective) => void;
     categories: Category[];
+    threadPagePermalink?: string;
+    feedPagePermalink?: string;
+    categoryThreadPagePermalink?: string;
+    categoriesPagePermalink?: string;
+    searchPagePermalink?: string;
+    searchResultsPagePermalink?: string;
 }) {
     const isBranching = branchingId === node.id;
 
@@ -62,6 +75,12 @@ function Branch({
                 onReport={onReport}
                 onEdit={onEdit}
                 showBranchAction
+                threadPagePermalink={threadPagePermalink}
+                feedPagePermalink={feedPagePermalink}
+                categoryThreadPagePermalink={categoryThreadPagePermalink}
+                categoriesPagePermalink={categoriesPagePermalink}
+                searchPagePermalink={searchPagePermalink}
+                searchResultsPagePermalink={searchResultsPagePermalink}
             />
 
             {(node.children.length > 0 || isBranching) && (
@@ -88,6 +107,12 @@ function Branch({
                             onReport={onReport}
                             onEdit={onEdit}
                             categories={categories}
+                            threadPagePermalink={threadPagePermalink}
+                            feedPagePermalink={feedPagePermalink}
+                            categoryThreadPagePermalink={categoryThreadPagePermalink}
+                            categoriesPagePermalink={categoriesPagePermalink}
+                            searchPagePermalink={searchPagePermalink}
+                            searchResultsPagePermalink={searchResultsPagePermalink}
                         />
                     ))}
                 </div>
@@ -98,7 +123,27 @@ function Branch({
 
 export default function ThreadBlock() {
     const { user } = useAuth();
-    const { perspectives, categories } = usePage<{ perspectives: Perspective[] }>().props;
+    const {
+        perspectives,
+        categories,
+        threadPagePermalink,
+        feedPagePermalink,
+        categoryThreadPagePermalink,
+        categoriesPagePermalink,
+        searchPagePermalink,
+        searchResultsPagePermalink
+
+    } = usePage<{
+        perspectives: Perspective[];
+        categories: Category[];
+        threadPagePermalink: string;
+        feedPagePermalink: string;
+        categoryThreadPagePermalink: string;
+        categoriesPagePermalink: string;
+        searchPagePermalink: string;
+        searchResultsPagePermalink: string;
+
+    }>().props;
     const [branchingId, setBranchingId] = useState<number | null>(null);
     const [reportId, setReportId] = useState<number | null>(null);
     const [editing, setEditing] = useState<Perspective | null>(null);
@@ -107,11 +152,12 @@ export default function ThreadBlock() {
     useEffect(() => {
         router.reload({only: ['categories']});
     }, []);
+
     if (!tree) {
         return (
             <Layout>
                 <div className="tf-panel">
-                    <Link href={route('perspectives.index')} className="tf-back">
+                    <Link href={UrlBuilder.buildFeedPageUrl(feedPagePermalink)} className="tf-back">
                         <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                         All perspectives
                     </Link>
@@ -123,7 +169,7 @@ export default function ThreadBlock() {
 
     return (
         <>
-            <Link href={route('perspectives.index')} className="tf-back">
+            <Link href={UrlBuilder.buildFeedPageUrl(feedPagePermalink)} className="tf-back">
                 <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
                 All perspectives
             </Link>
@@ -142,6 +188,12 @@ export default function ThreadBlock() {
                     onReport={setReportId}
                     onEdit={setEditing}
                     categories={categories}
+                    threadPagePermalink={threadPagePermalink}
+                    feedPagePermalink={feedPagePermalink}
+                    categoryThreadPagePermalink={categoryThreadPagePermalink}
+                    categoriesPagePermalink={categoriesPagePermalink}
+                    searchPagePermalink={searchPagePermalink}
+                    searchResultsPagePermalink={searchResultsPagePermalink}
                 />
             </div>
 

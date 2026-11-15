@@ -10,19 +10,25 @@ enum Block: string
     use EnumUtilityTrait, SelectDataTrait;
 
     case PERSPECTIVES_CATEGORY = 'perspectives_category';
+    case PERSPECTIVES_CATEGORY_THREAD = 'perspectives_category_thread';
     case PERSPECTIVES_FEATURED = 'perspectives_featured';
     case PERSPECTIVES_FEED = 'perspectives_feed';
     case PERSPECTIVES_STATS = 'perspectives_stats';
     case PERSPECTIVES_THREAD = 'perspectives_thread';
+    case PERSPECTIVES_SEARCH = 'perspectives_search';
+    case PERSPECTIVES_SEARCH_RESULTS = 'perspectives_search_results';
 
     public function label(): string
     {
         return match ($this) {
             self::PERSPECTIVES_CATEGORY => 'Perspectives Category',
+            self::PERSPECTIVES_CATEGORY_THREAD => 'Perspectives Category Thread',
             self::PERSPECTIVES_FEATURED => 'Perspectives Featured',
             self::PERSPECTIVES_FEED => 'Perspectives Feed',
             self::PERSPECTIVES_STATS => 'Perspectives Stats',
             self::PERSPECTIVES_THREAD => 'Perspectives Thread',
+            self::PERSPECTIVES_SEARCH => 'Perspectives Search',
+            self::PERSPECTIVES_SEARCH_RESULTS => 'Perspectives Search Results',
         };
     }
 
@@ -37,6 +43,13 @@ enum Block: string
                 'id' => '',
 
             ],
+            self::PERSPECTIVES_CATEGORY_THREAD => [
+                'page_number' => 1,
+                'page_size' => 10,
+                'sort_by' => 'created_at',
+                'sort_order' => 'desc',
+                'id' => '',
+            ],
             self::PERSPECTIVES_FEATURED => [
                 'page_number' => 1,
                 'page_size' => 10,
@@ -50,7 +63,6 @@ enum Block: string
                 'sort_by' => 'created_at',
                 'sort_order' => 'desc',
                 'id' => '',
-                'thread_page' => null
             ],
             self::PERSPECTIVES_STATS => [
                 'page_number' => 1,
@@ -60,6 +72,20 @@ enum Block: string
                 'id' => '',
             ],
             self::PERSPECTIVES_THREAD => [
+                'page_number' => 1,
+                'page_size' => 10,
+                'sort_by' => 'created_at',
+                'sort_order' => 'desc',
+                'id' => '',
+            ],
+            self::PERSPECTIVES_SEARCH => [
+                'page_number' => 1,
+                'page_size' => 10,
+                'sort_by' => 'created_at',
+                'sort_order' => 'desc',
+                'id' => '',
+            ],
+            self::PERSPECTIVES_SEARCH_RESULTS => [
                 'page_number' => 1,
                 'page_size' => 10,
                 'sort_by' => 'created_at',
@@ -124,7 +150,6 @@ enum Block: string
                 'sort_by' => ['sometimes', 'string'],
                 'sort_order' => ['sometimes', 'in:asc,desc'],
                 'id' => ['sometimes', 'string'],
-                'thread_page' => ['sometimes', 'numeric', 'exists:pages,id'],
                 ...$this->stylingValidationRules(),
             ],
             self::PERSPECTIVES_STATS => [
@@ -143,7 +168,31 @@ enum Block: string
                 'id' => ['sometimes', 'string'],
                 ...$this->stylingValidationRules(),
             ],
+            self::PERSPECTIVES_CATEGORY_THREAD => [
+                'page_number' => ['sometimes', 'integer', 'min:1'],
+                'page_size' => ['sometimes', 'integer', 'min:1', 'max:100'],
+                'sort_by' => ['sometimes', 'string'],
+                'sort_order' => ['sometimes', 'in:asc,desc'],
+                'id' => ['sometimes', 'string'],
+                ...$this->stylingValidationRules(),
+            ],
             self::PERSPECTIVES_THREAD => [
+                'page_number' => ['sometimes', 'integer', 'min:1'],
+                'page_size' => ['sometimes', 'integer', 'min:1', 'max:100'],
+                'sort_by' => ['sometimes', 'string'],
+                'sort_order' => ['sometimes', 'in:asc,desc'],
+                'id' => ['sometimes', 'string'],
+                ...$this->stylingValidationRules(),
+            ],
+            self::PERSPECTIVES_SEARCH => [
+                'page_number' => ['sometimes', 'integer', 'min:1'],
+                'page_size' => ['sometimes', 'integer', 'min:1', 'max:100'],
+                'sort_by' => ['sometimes', 'string'],
+                'sort_order' => ['sometimes', 'in:asc,desc'],
+                'id' => ['sometimes', 'string'],
+                ...$this->stylingValidationRules(),
+            ],
+            self::PERSPECTIVES_SEARCH_RESULTS => [
                 'page_number' => ['sometimes', 'integer', 'min:1'],
                 'page_size' => ['sometimes', 'integer', 'min:1', 'max:100'],
                 'sort_by' => ['sometimes', 'string'],
@@ -163,6 +212,9 @@ enum Block: string
             self::PERSPECTIVES_FEED,
             self::PERSPECTIVES_STATS,
             self::PERSPECTIVES_THREAD,
+            self::PERSPECTIVES_CATEGORY_THREAD => [],
+            self::PERSPECTIVES_SEARCH,
+            self::PERSPECTIVES_SEARCH_RESULTS => [],
             self::PERSPECTIVES_CATEGORY => []
         };
     }
@@ -170,7 +222,7 @@ enum Block: string
     public static function getData(): array
     {
         return array_map(
-            fn ($case) => [
+            fn($case) => [
                 'value' => $case->value,
                 'label' => $case->label(),
                 'schema' => $case->schema(),
@@ -183,6 +235,12 @@ enum Block: string
     {
         return [
             'title' => '',
+            'thread_page' => null,
+            'feed_page' => null,
+            'search_page' => null,
+            'search_results_page' => null,
+            'categories_page' => null,
+            'category_thread_page' => null,
         ];
     }
 
@@ -190,6 +248,12 @@ enum Block: string
     {
         return [
             'title' => ['sometimes', 'string'],
+            'search_page' => ['sometimes', 'numeric', 'exists:pages,id'],
+            'search_results_page' => ['sometimes', 'numeric', 'exists:pages,id'],
+            'thread_page' => ['sometimes', 'numeric', 'exists:pages,id'],
+            'feed_page' => ['sometimes', 'numeric', 'exists:pages,id'],
+            'categories_page' => ['sometimes', 'numeric', 'exists:pages,id'],
+            'category_thread_page' => ['sometimes', 'numeric', 'exists:pages,id'],
         ];
     }
 }

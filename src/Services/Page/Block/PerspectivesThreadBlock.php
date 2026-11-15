@@ -8,9 +8,8 @@ use Truvoicer\TfPerspectives\Services\PerspectiveService;
 use Truvoicer\TruFetcherCore\Contracts\Override;
 use Truvoicer\TruFetcherCore\Models\Page;
 use Truvoicer\TruFetcherCore\Models\PageColumnBlock;
-use Truvoicer\TruFetcherCore\Services\Page\Block\PageBlock;
 
-class PerspectivesThreadBlock extends PageBlock
+class PerspectivesThreadBlock extends PerspectivesBlock
 {
     public function __construct(
         protected PerspectiveService $perspectiveService
@@ -32,6 +31,7 @@ class PerspectivesThreadBlock extends PageBlock
     ): array {
         $parameters = $this->getParameters();
         $perspective = $this->getPerspective();
+        $data = $block->getData();
 
         return [
             'rootId'       => $perspective?->rootId(),
@@ -45,6 +45,7 @@ class PerspectivesThreadBlock extends PageBlock
                 }
             ),
             'perspective' => $perspective,
+            ...$this->buildPermalinks($data),
         ];
     }
 
@@ -53,7 +54,7 @@ class PerspectivesThreadBlock extends PageBlock
         Page $page,
     ): array {
         $user = $this->getUser();
-
+        $data = $block->getData();
         $parameters = $this->getParameters();
         $perspective = $this->getPerspective();
         return [
@@ -62,6 +63,7 @@ class PerspectivesThreadBlock extends PageBlock
             'perspectives' => $this->perspectiveService->getPerspectiveThread($perspective, $this->getUser()),
             'user' => $user ? $this->userResource::make($user) : null,
             'perspective' => $perspective,
+            ...$this->buildPermalinks($data),
         ];
     }
 
@@ -69,5 +71,21 @@ class PerspectivesThreadBlock extends PageBlock
         PageColumnBlock $block,
     ): array {
         return [];
+    }
+
+    public function parseData(
+        PageColumnBlock $block,
+    ): array {
+        $data = parent::parseData($block);
+        $pageTypes = [
+            'thread_page',
+            'feed_page',
+            'categories_page',
+            'category_thread_page',
+            'search_page',
+            'search_results_page',
+        ];
+
+        return $this->parsePageTypes($data, $pageTypes);
     }
 }

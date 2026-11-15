@@ -17,6 +17,7 @@ import {
     FetcherListPageBlock,
     SelectOption,
 } from '@truvoicer/tru-fetcher-core-ui/types';
+import SharedPageSelectOptions from './common/shared-page-select-options';
 export interface BlockStatsOptionsProps extends BlockOptionsSharedProps {
 
 }
@@ -132,6 +133,13 @@ function BlockStatsOptions({
                                 />
                             </div>
                         </div>
+                    </div>
+
+                    <div className="card-header">Page</div>
+                    <div className="card-body">
+                        <SharedPageSelectOptions
+                            block={block}
+                        />
                     </div>
 
                     <div className="card-header">Styling</div>

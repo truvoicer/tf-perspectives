@@ -2,73 +2,39 @@
 // packages/truvoicer/tf-perspectives/src/Http/Controllers/SearchController.php
 
 namespace Truvoicer\TfPerspectives\Http\Controllers;
-
-use Illuminate\Database\Eloquent\Builder;
+use Truvoicer\TfPerspectives\Http\Requests\SearchIndexRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Truvoicer\TfPerspectives\Http\Controllers\Concerns\TransformsPerspectives;
-use Truvoicer\TfPerspectives\Models\PerspectiveCategory;
-use Truvoicer\TfPerspectives\Models\Perspective;
-use Truvoicer\TfPerspectives\Models\Tag;
-use Truvoicer\TfPerspectives\Services\CategoryService;
+use Truvoicer\TfPerspectives\Services\PerspectiveService;
+use Truvoicer\TruFetcherCore\Traits\Request\ValidatesFormRequests;
 
 class SearchController extends Controller
 {
-    use TransformsPerspectives;
+    use ValidatesFormRequests;
+
+    public function __construct(
+        protected PerspectiveService $perspectiveService
+    ) {}
 
     public function index(Request $request): Response
     {
-        $viewerId = request()->user()?->id;
-
-        $q        = trim((string) $request->input('q', ''));
-        $tag      = trim((string) $request->input('tag', ''));
-        $mood     = (string) $request->input('mood', '');
-        $category = (string) $request->input('category', '');
-        $sort     = (string) $request->input('sort', 'recent');
-
-        $query = Perspective::query()->whereNull('parent_id');
-
-        if ($q !== '') {
-            $query->where(function (Builder $inner) use ($q) {
-                $inner->where('body', 'like', "%{$q}%")
-                      ->orWhere('voice', 'like', "%{$q}%")
-                      ->orWhereHas('author', fn (Builder $a) => $a->where('name', 'like', "%{$q}%"))
-                      ->orWhereHas('tags', fn (Builder $t) => $t->where('name', 'like', "%{$q}%"));
-            });
-        }
-
-        if ($tag !== '') {
-            $query->whereHas('tags', fn (Builder $t) => $t->where('name', $tag));
-        }
-
-        if ($mood !== '') {
-            $query->where('mood', $mood);
-        }
-
-        if ($category !== '') {
-            $query->whereHas('category', fn (Builder $c) => $c->where('slug', $category));
-        }
-
-        match ($sort) {
-            'popular'  => $query->withCount('reactions')->orderByDesc('reactions_count')->orderByDesc('id'),
-            'branched' => $query->withCount('children')->orderByDesc('children_count')->orderByDesc('id'),
-            default    => $query->latest('id'),
-        };
-
-        $this->withCardRelations($query, $viewerId);
-
-        $paginator = $query->paginate(12)->withQueryString()
-            ->through(fn (Perspective $p) => $this->transform($p, $viewerId));
+        $request = $this->validateWithFormRequest($request, SearchIndexRequest::class, true);
+        $q        = trim((string) $request->validated('q', ''));
+        $tag      = trim((string) $request->validated('tag', ''));
+        $mood     = (string) $request->validated('mood', '');
+        $category = (string) $request->validated('category', '');
+        $sort     = (string) $request->validated('sort', 'recent');
 
         return Inertia::render('search', [
-            'perspectives' => $paginator,
-            'popularTags'  => Tag::query()
-                ->withCount('perspectives')
-                ->orderByDesc('perspectives_count')
-                ->limit(12)
-                ->pluck('name')
-                ->all(),
+            'perspectives' => $this->perspectiveService->search(request()->user(), [
+                'q'        => $q,
+                'tag'      => $tag,
+                'mood'     => $mood,
+                'category' => $category,
+                'sort'     => $sort,
+            ]),
+            'popularTags'  => $this->perspectiveService->popularTags(),
             'filters'      => [
                 'q'        => $q,
                 'tag'      => $tag,

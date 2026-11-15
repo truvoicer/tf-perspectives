@@ -113,7 +113,7 @@ export default function Search({
                                 }}
                             >
                                 <option value="">All categories</option>
-                                {categories.map((c) => (
+                                {Array.isArray(categories) && categories.map((c) => (
                                     <option key={c.id} value={c.slug}>{c.name}</option>
                                 ))}
                             </Form.Select>
@@ -158,7 +158,7 @@ export default function Search({
                         </Col>
                     </Row>
 
-                    {popularTags.length > 0 && (
+                    {Array.isArray(popularTags) && popularTags.length > 0 && (
                         <div className="tf-tag-cloud mt-3">
                             <span className="text-muted small me-2">Popular:</span>
                             {popularTags.map((t) => (
@@ -188,7 +188,7 @@ export default function Search({
                     </h2>
                 </div>
 
-                {perspectives.data.length === 0 ? (
+                {Array.isArray(perspectives?.data) && perspectives.data.length === 0 ? (
                     <EmptyState
                         icon={faSearch}
                         title="Nothing matched"
@@ -201,7 +201,7 @@ export default function Search({
                     />
                 ) : (
                     <div className="tf-feed">
-                        {perspectives.data.map((p) => (
+                        {Array.isArray(perspectives?.data) && perspectives.data.length > 0 && perspectives.data.map((p) => (
                             <PerspectiveCard
                                 key={p.id}
                                 perspective={p}

@@ -36,7 +36,7 @@ function DiscussionNode({ shoe, discussion }: Props) {
         if (!confirm('Delete this discussion?')) return;
         // Inertia router delete...
         import('@inertiajs/react').then(({ router }) => {
-            router.delete(route('shoes.discussions.destroy', { discussion: discussion.id }), {
+            router.delete(route('perspectives.shoes.discussions.destroy', { perspective: shoe.perspective_id, perspectiveShoe: shoe.id, discussion: discussion.id }), {
                 preserveScroll: true,
             });
         });

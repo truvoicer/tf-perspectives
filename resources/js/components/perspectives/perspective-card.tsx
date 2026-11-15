@@ -21,6 +21,7 @@ import type { Perspective } from '../../types/perspectives';
 import { PerspectiveShoes } from './perspective-shoes';
 import { ReactionBar } from './reaction-bar';
 import { ShareMenu } from './share-menu';
+import { UrlBuilder } from '../../lib/url-builder';
 
 interface PerspectiveCardProps {
     perspective: Perspective;
@@ -33,6 +34,11 @@ interface PerspectiveCardProps {
     truncate?: boolean;
     onEdit?: (perspective: Perspective) => void;
     threadPagePermalink?: string;
+    feedPagePermalink?: string;
+    categoryThreadPagePermalink?: string;
+    categoriesPagePermalink?: string;
+    searchPagePermalink?: string;
+    searchResultsPagePermalink?: string;
 }
 
 export function PerspectiveCard({
@@ -44,6 +50,11 @@ export function PerspectiveCard({
     truncate = false,
     onEdit,
     threadPagePermalink,
+    feedPagePermalink,
+    categoryThreadPagePermalink,
+    categoriesPagePermalink,
+    searchPagePermalink,
+    searchResultsPagePermalink,
 }: PerspectiveCardProps) {
     const label = perspective.voice ?? perspective.author?.full_name ?? 'Anonymous';
     const url = route('perspectives.show', { perspective: perspective.id });
@@ -52,10 +63,12 @@ export function PerspectiveCard({
     const toggleBookmark = () => {
         router.post(route('perspectives.bookmark.toggle', { perspective: perspective.id }), {}, { preserveScroll: true, preserveState: true });
     };
-
-    const buildThreadPageUrl = () => {
-        return threadPagePermalink ? `${threadPagePermalink}/${perspective.id}` : `/perspectives/${perspective.id}`;
-    };
+    console.log({threadPagePermalink,
+    feedPagePermalink,
+    categoryThreadPagePermalink,
+    categoriesPagePermalink,
+    searchPagePermalink,
+    searchResultsPagePermalink,})
     return (
         <>
             <article className="tf-card">
@@ -90,7 +103,7 @@ export function PerspectiveCard({
                     <div className="tf-card-tools">
                         {perspective.category && (
                             <Link
-                                href={`/perspectives/categories/${perspective.category.slug}`}
+                                href={UrlBuilder.buildCategoryThreadPageUrl(categoryThreadPagePermalink, perspective.category.slug)}
                                 className="tf-cat-pill"
                                 style={{ ['--cat' as any]: perspective.category.color }}
                             >
@@ -132,7 +145,7 @@ export function PerspectiveCard({
                 {perspective.tags.length > 0 && (
                     <div className="tf-card-tags">
                         {perspective.tags.map((tag) => (
-                            <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`} className="tf-tag-link">
+                            <Link key={tag} href={`${UrlBuilder.buildSearchPageUrl(searchPagePermalink)}?tag=${encodeURIComponent(tag)}`} className="tf-tag-link">
                                 #{tag}
                             </Link>
                         ))}
@@ -144,7 +157,7 @@ export function PerspectiveCard({
 
                     <div className="tf-card-foot-right">
                         {perspective.children_count > 0 && (
-                            <Link href={buildThreadPageUrl()} className="tf-count">
+                            <Link href={UrlBuilder.buildThreadPageUrl(threadPagePermalink, perspective.id)} className="tf-count">
                                 <FontAwesomeIcon icon={faComment} className="me-1" />
                                 {perspective.children_count}
                             </Link>
@@ -156,7 +169,7 @@ export function PerspectiveCard({
                             </button>
                         )}
                         {!showBranchAction && (
-                            <Link href={buildThreadPageUrl()} className="tf-read-more">
+                            <Link href={UrlBuilder.buildThreadPageUrl(threadPagePermalink, perspective.id)} className="tf-read-more">
                                 Step in <FontAwesomeIcon icon={faArrowRight} className="ms-1" />
                             </Link>
                         )}

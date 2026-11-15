@@ -41,8 +41,6 @@ class ShoeController extends Controller
         );
         // Notify the perspective author
         if ($perspective->user_id !== $request->user()->id) {
-
-                    dd($shoe, ($perspective->user_id === $request->user()->id));
             $perspective->author->notify(new ShoeAdded($shoe));
         }
         return redirect()->back();

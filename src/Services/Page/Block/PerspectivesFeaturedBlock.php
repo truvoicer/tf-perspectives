@@ -6,9 +6,8 @@ use Inertia\Inertia;
 use Truvoicer\TfPerspectives\Services\PerspectiveService;
 use Truvoicer\TruFetcherCore\Models\Page;
 use Truvoicer\TruFetcherCore\Models\PageColumnBlock;
-use Truvoicer\TruFetcherCore\Services\Page\Block\PageBlock;
 
-class PerspectivesFeaturedBlock extends PageBlock
+class PerspectivesFeaturedBlock extends PerspectivesBlock
 {
     public function __construct(
         protected PerspectiveService $perspectiveService
@@ -22,7 +21,7 @@ class PerspectivesFeaturedBlock extends PageBlock
         if ($this->hasValidator()) {
             $validated = $this->validator->validated();
         }
-
+        $data = $block->getData();
         return [
             'user' => Inertia::optional(
                 function () {
@@ -37,6 +36,7 @@ class PerspectivesFeaturedBlock extends PageBlock
                 ->setPage((!empty($validated['featured_page']) ? (int)$validated['featured_page'] : 1))
                 ->setPerPage((!empty($validated['featured_per_page']) ? (int)$validated['featured_per_page'] : 10))
                 ->getFeaturedPerspectives($this->getUser()),
+            ...$this->buildPermalinks($data),
         ];
     }
 
@@ -50,6 +50,7 @@ class PerspectivesFeaturedBlock extends PageBlock
         if ($this->hasValidator()) {
             $validated = $this->validator->validated();
         }
+        $data = $block->getData();
         return [
             'user' => $user ? $this->userResource::make($user) : null,
             'featured' => $this->perspectiveService
@@ -58,6 +59,7 @@ class PerspectivesFeaturedBlock extends PageBlock
                 ->setPage((!empty($validated['featured_page']) ? (int)$validated['featured_page'] : 1))
                 ->setPerPage((!empty($validated['featured_per_page']) ? (int)$validated['featured_per_page'] : 10))
                 ->getFeaturedPerspectives($user),
+            ...$this->buildPermalinks($data),
         ];
     }
 
@@ -71,5 +73,21 @@ class PerspectivesFeaturedBlock extends PageBlock
             'featured_sort' => ['sometimes', 'string', 'in:asc,desc'],
             'featured_filter' => ['sometimes', 'string'],
         ];
+    }
+
+    public function parseData(
+        PageColumnBlock $block,
+    ): array {
+        $data = parent::parseData($block);
+        $pageTypes = [
+            'thread_page',
+            'feed_page',
+            'categories_page',
+            'category_thread_page',
+            'search_page',
+            'search_results_page',
+        ];
+
+        return $this->parsePageTypes($data, $pageTypes);
     }
 }
