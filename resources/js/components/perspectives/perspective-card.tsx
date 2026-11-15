@@ -32,6 +32,7 @@ interface PerspectiveCardProps {
     /** Truncate body (used in list views). */
     truncate?: boolean;
     onEdit?: (perspective: Perspective) => void;
+    threadPagePermalink?: string;
 }
 
 export function PerspectiveCard({
@@ -42,6 +43,7 @@ export function PerspectiveCard({
     showBranchAction = false,
     truncate = false,
     onEdit,
+    threadPagePermalink,
 }: PerspectiveCardProps) {
     const label = perspective.voice ?? perspective.author?.full_name ?? 'Anonymous';
     const url = route('perspectives.show', { perspective: perspective.id });
@@ -51,6 +53,9 @@ export function PerspectiveCard({
         router.post(route('perspectives.bookmark.toggle', { perspective: perspective.id }), {}, { preserveScroll: true, preserveState: true });
     };
 
+    const buildThreadPageUrl = () => {
+        return threadPagePermalink ? `${threadPagePermalink}/${perspective.id}` : `/perspectives/${perspective.id}`;
+    };
     return (
         <>
             <article className="tf-card">
@@ -139,7 +144,7 @@ export function PerspectiveCard({
 
                     <div className="tf-card-foot-right">
                         {perspective.children_count > 0 && (
-                            <Link href={`/perspectives/${perspective.id}`} className="tf-count">
+                            <Link href={buildThreadPageUrl()} className="tf-count">
                                 <FontAwesomeIcon icon={faComment} className="me-1" />
                                 {perspective.children_count}
                             </Link>
@@ -151,7 +156,7 @@ export function PerspectiveCard({
                             </button>
                         )}
                         {!showBranchAction && (
-                            <Link href={`/perspectives/${perspective.id}`} className="tf-read-more">
+                            <Link href={buildThreadPageUrl()} className="tf-read-more">
                                 Step in <FontAwesomeIcon icon={faArrowRight} className="ms-1" />
                             </Link>
                         )}

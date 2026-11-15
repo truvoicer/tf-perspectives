@@ -50,6 +50,7 @@ enum Block: string
                 'sort_by' => 'created_at',
                 'sort_order' => 'desc',
                 'id' => '',
+                'thread_page' => null
             ],
             self::PERSPECTIVES_STATS => [
                 'page_number' => 1,
@@ -123,6 +124,7 @@ enum Block: string
                 'sort_by' => ['sometimes', 'string'],
                 'sort_order' => ['sometimes', 'in:asc,desc'],
                 'id' => ['sometimes', 'string'],
+                'thread_page' => ['sometimes', 'numeric', 'exists:pages,id'],
                 ...$this->stylingValidationRules(),
             ],
             self::PERSPECTIVES_STATS => [

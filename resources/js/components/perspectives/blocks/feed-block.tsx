@@ -20,7 +20,7 @@ interface FeedBlockProps {
 export default function FeedBlock(props: FeedBlockProps) {
     const { user } = useAuth();
 
-    const { perspectives, filters } = usePage<{ perspectives: Paginator<Perspective>; filters: { q: string; tab: string } }>().props;
+    const { perspectives, filters, threadPagePermalink } = usePage<{ perspectives: Paginator<Perspective>; filters: { q: string; tab: string }; threadPagePermalink?: string; }>().props;
     const [reportId, setReportId] = useState<number | null>(null);
 
     const [editing, setEditing] = useState<Perspective | null>(null);
@@ -33,7 +33,6 @@ export default function FeedBlock(props: FeedBlockProps) {
             data: { ...filters, tab: next },
         });
     };
-
     return (
         <div className="tf-panel">
             <div className="d-flex justify-content-between align-items-center">
@@ -92,6 +91,7 @@ export default function FeedBlock(props: FeedBlockProps) {
                             truncate
                             onReport={setReportId}
                             onEdit={(persp) => setEditing(persp)}
+                            threadPagePermalink={threadPagePermalink}
                         />
                     ))}
                 </div>

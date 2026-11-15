@@ -24,8 +24,8 @@ import { FeedOptionsBlock } from '../../../../types/page-block';
 export interface BlockFeedOptionsOptionsProps extends BlockOptionsSharedProps {}
 function BlockFeedOptions({ block, columnBlockDeleteFileRequest, columnBlockFileStoreRequest }: BlockFeedOptionsOptionsProps) {
     const [showPageSelectModal, setShowPageSelectModal] = useState(false);
-    const [selectedPages, setSelectedPages] = useState<Page[]>([]);
-    const [pagesToSave, setPagesToSave] = useState<Page[]>([]);
+    const [selectedPage, setSelectedPage] = useState<Page | null>(null);
+    const [pageToSave, setPageToSave] = useState<Page | null>(null);
     const [pages, setPages] = useState<Pagination<Page> | null>(null);
 
     const data = block?.data as FeedOptionsBlock;
@@ -60,13 +60,11 @@ function BlockFeedOptions({ block, columnBlockDeleteFileRequest, columnBlockFile
         }
     }
     function customizeIdsRowData(item: Page) {
-        if (!selectedPages) {
+        if (!selectedPage) {
             return item;
         }
         const cloneItem = { ...item };
-        if (selectedPages.find((page) => page?.id === cloneItem?.id)) {
-            cloneItem['selected'] = true;
-        }
+        cloneItem['selected'] = cloneItem['id'] === selectedPage?.id;
         return cloneItem;
     }
     function buildManagePagesProps(pageData: Pagination<Page>) {
@@ -91,27 +89,22 @@ function BlockFeedOptions({ block, columnBlockDeleteFileRequest, columnBlockFile
                 if (!Array.isArray(selected)) {
                     return;
                 }
+                if (selected.length === 0) {
+                    return;
+                }
 
-                setSelectedPages((prevSelected) => {
-                    const currentPageIds = new Set(currentRows.map((r) => r.id));
-
-                    // 1) Keep everything that is NOT from the current page
-                    const keepFromOtherPages = prevSelected.filter((p) => !currentPageIds.has(p.id));
-
-                    // 2) Add all selected items from the current page
-                    // (this replaces whatever was previously selected on this page)
-                    return [...keepFromOtherPages, ...selected];
-                });
+                setSelectedPage(selected[0]);
             },
         };
         return defaultProps;
     }
 
     useEffect(() => {
-        const pages = Array.isArray(data?.pages) ? data.pages : [];
-        setPagesToSave(pages);
-        setSelectedPages(pages);
+        const threadPage = data?.thread_page || null;
+        setPageToSave(threadPage);
+        setSelectedPage(threadPage);
     }, [data]);
+
     return (
         <div className="row align-items-center">
             <div className="col-12">
@@ -213,7 +206,7 @@ function BlockFeedOptions({ block, columnBlockDeleteFileRequest, columnBlockFile
                     <div className="card-body">
                         <div className="col-12">
                             <div className="mb-3">
-                                <p>Selected Pages: {pagesToSave?.map((page) => page?.title).join(', ')}</p>
+                                <p>Selected Page: {pageToSave ? pageToSave?.title : 'None'}</p>
                             </div>
                             <Button
                                 type="button"
@@ -222,9 +215,11 @@ function BlockFeedOptions({ block, columnBlockDeleteFileRequest, columnBlockFile
                                     fetchData({ query: {} });
                                 }}
                             >
-                                Select Pages
+                                Select Page
                             </Button>
-                            <input type="hidden" name="selected_pages" value={pagesToSave?.map((page) => page?.id).join(', ')} />
+                            {pageToSave && (
+                                <input type="hidden" name="thread_page" value={pageToSave.id} />
+                            )}
                         </div>
                     </div>
 
@@ -258,20 +253,23 @@ function BlockFeedOptions({ block, columnBlockDeleteFileRequest, columnBlockFile
                     </div>
                 </div>
             </div>
-            <Modal show={showPageSelectModal} onHide={() => setShowPageSelectModal(false)} size="lg">
+            <Modal show={showPageSelectModal} onHide={() => setShowPageSelectModal(false)} size="lg" className="modal-full-form">
                 <Modal.Header closeButton>
                     <Modal.Title>Select Page</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>{pages ? <ManagePages {...buildManagePagesProps(pages)} /> : <LoadingSpinner />}</Modal.Body>
                 <Modal.Footer>
-                    <Button type="button" onClick={() => setShowPageSelectModal(false)}>
+                    <Button type="button" onClick={() => {
+                        setSelectedPage(null);
+                        setShowPageSelectModal(false)
+                    }}>
                         Close
                     </Button>
                     <Button
                         type="button"
                         onClick={() => {
-                            if (Array.isArray(selectedPages)) {
-                                setPagesToSave(selectedPages);
+                            if (selectedPage) {
+                                setPageToSave(selectedPage);
                             }
                             setShowPageSelectModal(false);
                         }}

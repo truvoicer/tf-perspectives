@@ -2,5 +2,5 @@ import { FetcherListStylingOptions, SharedBlockOptionsType } from "@truvoicer/tr
 import { Page } from "@truvoicer/tru-fetcher-core-ui/types";
 
 export interface FeedOptionsBlock extends FetcherListStylingOptions, SharedBlockOptionsType {
-    pages?: Page[];
+    thread_page?: Page;
 }

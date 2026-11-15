@@ -4,6 +4,8 @@ namespace Truvoicer\TfPerspectives\Services\Page\Block;
 
 use Inertia\Inertia;
 use Truvoicer\TfPerspectives\Services\PerspectiveService;
+use Truvoicer\TruFetcherCore\Contracts\Override;
+use Truvoicer\TruFetcherCore\Http\Resources\Page\PageResource;
 use Truvoicer\TruFetcherCore\Models\Page;
 use Truvoicer\TruFetcherCore\Models\PageColumnBlock;
 use Truvoicer\TruFetcherCore\Services\Page\Block\PageBlock;
@@ -18,6 +20,14 @@ class PerspectivesFeedBlock extends PageBlock
         PageColumnBlock $block,
         Page $page,
     ): array {
+        $data = $block->getData();
+        $threadPage = null;
+        if (!empty($data['thread_page'])) {
+            $page = Override::resolveClass(Page::class)::find($data['thread_page']);
+            if ($page) {
+                $threadPage = Override::resolveClass(PageResource::class)::make($page);
+            }
+        }
 
         $validated = $this->getValidator()?->validated();
         $search = (!empty($validated['q'])) ? $validated['q'] : '';
@@ -38,6 +48,7 @@ class PerspectivesFeedBlock extends PageBlock
                 $tab ?? 'default'
             ),
             'filters'      => ['q' => $search, 'tab' => $tab],
+            'threadPagePermalink' => $threadPage ? $threadPage->getPermalink() : null,
         ];
     }
 
@@ -69,4 +80,22 @@ class PerspectivesFeedBlock extends PageBlock
             'tab' => ['sometimes', 'string'],
         ];
     }
+
+    public function parseData(
+        PageColumnBlock $block,
+    ): array {
+        $data = parent::parseData($block);
+
+        if (!empty($data['thread_page'])) {
+            $page = Override::resolveClass(Page::class)::find($data['thread_page']);
+            if ($page) {
+                $data['thread_page'] = Override::resolveClass(PageResource::class)::make($page);
+            } else {
+                $data['thread_page'] = null;
+            }
+        }
+
+        return $data;
+    }
+
 }
