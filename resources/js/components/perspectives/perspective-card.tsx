@@ -22,6 +22,7 @@ import { PerspectiveShoes } from './perspective-shoes';
 import { ReactionBar } from './reaction-bar';
 import { ShareMenu } from './share-menu';
 import { UrlBuilder } from '../../lib/url-builder';
+import { usePerspectivesContext } from '../../provider/perspectives-provider';
 
 interface PerspectiveCardProps {
     perspective: Perspective;
@@ -49,26 +50,32 @@ export function PerspectiveCard({
     showBranchAction = false,
     truncate = false,
     onEdit,
-    threadPagePermalink,
-    feedPagePermalink,
-    categoryThreadPagePermalink,
-    categoriesPagePermalink,
-    searchPagePermalink,
-    searchResultsPagePermalink,
 }: PerspectiveCardProps) {
     const label = perspective.voice ?? perspective.author?.full_name ?? 'Anonymous';
     const url = route('perspectives.show', { perspective: perspective.id });
 
     const [shoesOpen, setShoesOpen] = useState(false);
+
+    const {
+        categoryThreadPagePermalink,
+        threadPagePermalink,
+        feedPagePermalink,
+        categoriesPagePermalink,
+        searchPagePermalink,
+        searchResultsPagePermalink,
+     } = usePerspectivesContext();
     const toggleBookmark = () => {
         router.post(route('perspectives.bookmark.toggle', { perspective: perspective.id }), {}, { preserveScroll: true, preserveState: true });
     };
-    console.log({threadPagePermalink,
-    feedPagePermalink,
-    categoryThreadPagePermalink,
-    categoriesPagePermalink,
-    searchPagePermalink,
-    searchResultsPagePermalink,})
+
+    console.log({
+        categoryThreadPagePermalink,
+        threadPagePermalink,
+        feedPagePermalink,
+        categoriesPagePermalink,
+        searchPagePermalink,
+        searchResultsPagePermalink,
+    })
     return (
         <>
             <article className="tf-card">

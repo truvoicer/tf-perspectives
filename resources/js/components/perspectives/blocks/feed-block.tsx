@@ -30,7 +30,7 @@ export default function FeedBlock(props: FeedBlockProps) {
 
     const switchTab = (next: string) => {
         router.reload({
-            data: { ...filters, tab: next },
+            data: { ...filters, tab: next }, preserveScroll: true, preserveState: true
         });
     };
     return (

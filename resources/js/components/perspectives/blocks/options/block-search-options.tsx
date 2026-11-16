@@ -3,33 +3,42 @@ import {
     BlockOptionsSharedProps,
     NiceSelectDropdown,
     TextInput,
+    ToggleSwitch,
     useAuthContext,
     useToastContext,
 } from '@truvoicer/tru-fetcher-core-ui';
 import { AppMiddleware } from '@truvoicer/tru-fetcher-core-ui/lib';
-import { ThreadOptionsBlock } from '../../../../types/page-block';
+import { SearchOptionsBlock } from '../../../../types/page-block';
 import SharedPageSelectOptions from './common/shared-page-select-options';
 
 export interface BlockSearchOptionsProps extends BlockOptionsSharedProps {}
 function BlockSearchOptions({ block, columnBlockDeleteFileRequest, columnBlockFileStoreRequest }: BlockSearchOptionsProps) {
-
-    const data = block?.data as ThreadOptionsBlock;
+    const data = block?.data as SearchOptionsBlock;
     const schema = block?.schema;
     const errors = block?.errors;
 
     const auth = useAuthContext();
     const page = usePage();
 
-
     const toastProvider = useToastContext();
     const middleware = new AppMiddleware(page);
     middleware.setToastProvider(toastProvider).setAuthProvider(auth);
 
-    console.log({data});
+    console.log({ data });
     return (
         <div className="row align-items-center">
             <div className="col-12">
                 <div className="card">
+                    <div className="card-header">Search Options</div>
+                    <div className="card-body">
+                        <div className="col-md-6 col-12 mt-3">
+                            <ToggleSwitch
+                                name="show_search_results"
+                                label="Show Search Results"
+                                defaultChecked={data?.show_search_results as boolean ?? schema?.show_search_results as boolean ?? false}
+                            />
+                        </div>
+                    </div>
                     <div className="card-header">Fetch Options</div>
                     <div className="card-body">
                         <div className="row align-items-center">
@@ -125,9 +134,7 @@ function BlockSearchOptions({ block, columnBlockDeleteFileRequest, columnBlockFi
 
                     <div className="card-header">Page</div>
                     <div className="card-body">
-                        <SharedPageSelectOptions
-                            block={block}
-                        />
+                        <SharedPageSelectOptions block={block} />
                     </div>
                 </div>
             </div>

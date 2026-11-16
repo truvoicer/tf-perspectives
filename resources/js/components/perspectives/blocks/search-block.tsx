@@ -3,11 +3,12 @@ import { faFilter, faSearch, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { router, usePage } from '@inertiajs/react';
 import { useAuth } from '@truvoicer/tru-fetcher-core-ui';
-import { useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type SubmitEvent } from 'react';
 import { Badge, Button, Col, Form, Row } from 'react-bootstrap';
 import { route } from 'ziggy-js';
 import type { Category, Paginator, Perspective } from '../../../types/perspectives';
-import SearchResultsBlock from './search-results-block';
+import { UrlBuilder } from '../../../lib/url-builder';
+import SearchResults from '../search-results';
 
 interface SearchBlockProps {
     perspectives: Paginator<Perspective>;
@@ -16,13 +17,31 @@ interface SearchBlockProps {
     filters: { q: string; category: string; tag: string; mood: string; sort: string };
 }
 
-export default function SearchBlock({}: SearchBlockProps) {
+export default function SearchBlock(props) {
     const { user } = useAuth();
-    const { perspectives, categories, popularTags, filters } = usePage<{
+    const {
+        perspectives,
+        categories,
+        popularTags,
+        filters,
+        searchResultsPagePermalink,
+        searchPagePermalink,
+        threadPagePermalink,
+        feedPagePermalink,
+        categoryThreadPagePermalink,
+        categoriesPagePermalink
+
+    } = usePage<{
         perspectives: Paginator<Perspective>;
-        categories: Category[];
         popularTags: string[];
         filters: { q: string; category: string; tag: string; mood: string; sort: string };
+        searchResultsPagePermalink?: string;
+        searchPagePermalink?: string;
+        categories: Category[];
+        threadPagePermalink?: string;
+        feedPagePermalink?: string;
+        categoryThreadPagePermalink?: string;
+        categoriesPagePermalink?: string;
     }>().props;
     const [q, setQ] = useState(filters?.q ?? '');
     const [tag, setTag] = useState(filters?.tag ?? '');
@@ -30,19 +49,26 @@ export default function SearchBlock({}: SearchBlockProps) {
     const [category, setCategory] = useState(filters?.category ?? '');
     const [sort, setSort] = useState(filters?.sort ?? 'recent');
 
+    const showSearchResults = props?.pageColumnBlock?.data?.show_search_results || false;
+
     const apply = (overrides: Partial<typeof filters> = {}) => {
-        router.get(
-            route('perspectives.search'),
-            {
-                q: q || undefined,
-                tag: tag || undefined,
-                mood: mood || undefined,
-                category: category || undefined,
-                sort: sort !== 'recent' ? sort : undefined,
-                ...overrides,
-            },
-            { preserveScroll: true, preserveState: true },
-        );
+        const searchParams = {
+            q: q || undefined,
+            tag: tag || undefined,
+            mood: mood || undefined,
+            category: category || undefined,
+            sort: sort !== 'recent' ? sort : undefined,
+            ...overrides,
+        };
+        if (showSearchResults) {
+            router.reload({ data: searchParams, preserveScroll: true, preserveState: true });
+        } else {
+            router.get(
+                UrlBuilder.buildSearchResultsPageUrl(searchResultsPagePermalink),
+                searchParams,
+                { preserveScroll: true, preserveState: true },
+            );
+        }
     };
 
     const submit = (e: SubmitEvent) => {
@@ -56,11 +82,17 @@ export default function SearchBlock({}: SearchBlockProps) {
         setMood('');
         setCategory('');
         setSort('recent');
-        router.get(route('perspectives.search'), {}, { preserveScroll: true, preserveState: true });
+        router.get(window.location.pathname, {}, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true, // Optional: prevents history spam
+        });
     };
 
     const hasFilters = Boolean(q || tag || mood || category);
-
+    useEffect(() => {
+        router.reload({ only: ['categories'] });
+    }, []);
     return (
         <>
             <div className="tf-panel mb-4">
@@ -102,7 +134,6 @@ export default function SearchBlock({}: SearchBlockProps) {
                                 value={category}
                                 onChange={(e) => {
                                     setCategory(e.target.value);
-                                    apply({ category: e.target.value || undefined });
                                 }}
                             >
                                 <option value="">All categories</option>
@@ -120,7 +151,6 @@ export default function SearchBlock({}: SearchBlockProps) {
                                 value={mood}
                                 onChange={(e) => {
                                     setMood(e.target.value);
-                                    apply({ mood: e.target.value || undefined });
                                 }}
                             >
                                 <option value="">Any mood</option>
@@ -137,7 +167,6 @@ export default function SearchBlock({}: SearchBlockProps) {
                                 value={sort}
                                 onChange={(e) => {
                                     setSort(e.target.value);
-                                    apply({ sort: e.target.value });
                                 }}
                             >
                                 <option value="recent">Most recent</option>
@@ -150,7 +179,6 @@ export default function SearchBlock({}: SearchBlockProps) {
                             <Form.Control
                                 value={tag}
                                 onChange={(e) => setTag(e.target.value)}
-                                onBlur={() => apply({ tag: tag || undefined })}
                                 placeholder="e.g. housing"
                             />
                         </Col>
@@ -168,7 +196,6 @@ export default function SearchBlock({}: SearchBlockProps) {
                                     onClick={() => {
                                         const next = tag === t ? '' : t;
                                         setTag(next);
-                                        apply({ tag: next || undefined });
                                     }}
                                 >
                                     #{t}
@@ -178,23 +205,30 @@ export default function SearchBlock({}: SearchBlockProps) {
                     )}
                 </Form>
             </div>
-
-            <SearchResultsBlock
-                perspectives={perspectives}
-                categories={categories}
-                popularTags={popularTags}
-                filters={{ q, tag, mood, category, sort }}
-                tag={tag}
-                setTag={setTag}
-                mood={mood}
-                setMood={setMood}
-                category={category}
-                setCategory={setCategory}
-                sort={sort}
-                setSort={setSort}
-                q={q}
-                setQ={setQ}
-            />
+            {showSearchResults && (
+                <SearchResults
+                    perspectives={perspectives}
+                    categories={categories}
+                    popularTags={popularTags}
+                    filters={{ q, tag, mood, category, sort }}
+                    tag={tag}
+                    setTag={setTag}
+                    mood={mood}
+                    setMood={setMood}
+                    category={category}
+                    setCategory={setCategory}
+                    sort={sort}
+                    setSort={setSort}
+                    q={q}
+                    setQ={setQ}
+                    threadPagePermalink={threadPagePermalink}
+                    feedPagePermalink={feedPagePermalink}
+                    categoryThreadPagePermalink={categoryThreadPagePermalink}
+                    categoriesPagePermalink={categoriesPagePermalink}
+                    searchPagePermalink={searchPagePermalink}
+                    searchResultsPagePermalink={searchResultsPagePermalink}
+                />
+            )}
         </>
     );
 }

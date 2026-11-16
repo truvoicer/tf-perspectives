@@ -3,17 +3,36 @@
 namespace Truvoicer\TfPerspectives\Services\Page\Block;
 
 use Inertia\Inertia;
+use Truvoicer\TfPerspectives\Models\Perspective;
+use Truvoicer\TfPerspectives\Models\PerspectiveCategory;
+use Truvoicer\TfPerspectives\Services\PerspectiveService;
+use Truvoicer\TruFetcherCore\Contracts\Override;
 use Truvoicer\TruFetcherCore\Models\Page;
 use Truvoicer\TruFetcherCore\Models\PageColumnBlock;
 
 class PerspectivesCategoryThreadBlock extends PerspectivesBlock
 {
+    public function __construct(
+        protected PerspectiveService $perspectiveService
+    ) {}
+
+    private function getPerspectiveCategory(): ?PerspectiveCategory
+    {
+        $parameters = $this->getParameters();
+        $category = $parameters['perspective_categories'] ?? null;
+
+        if ($category) {
+            return Override::resolveClass(PerspectiveCategory::class)::where('slug', trim($category))->first();
+        }
+
+        return null;
+    }
     public function inertiaDependencies(
         PageColumnBlock $block,
         Page $page,
     ): array {
-
         $data = $block->getData();
+        $category = $this->getPerspectiveCategory();
         return [
             'user' => Inertia::optional(
                 function () {
@@ -22,6 +41,8 @@ class PerspectivesCategoryThreadBlock extends PerspectivesBlock
                     return $user ? $this->userResource::make($user) : null;
                 }
             ),
+            'category'     => $this->perspectiveService->transformPerspectiveCategory($category),
+            'perspectives' => $this->perspectiveService->categoryPerspectives($category, $this->getUser()),
             ...$this->buildPermalinks($data),
         ];
     }
@@ -33,8 +54,12 @@ class PerspectivesCategoryThreadBlock extends PerspectivesBlock
         $user = $this->getUser();
         $data = $block->getData();
 
+        $data = $block->getData();
+        $category = $this->getPerspectiveCategory();
         return [
             'user' => $user ? $this->userResource::make($user) : null,
+            'category'     => $this->perspectiveService->transformPerspectiveCategory($category),
+            'perspectives' => $this->perspectiveService->categoryPerspectives($category, $this->getUser()),
             ...$this->buildPermalinks($data),
         ];
     }

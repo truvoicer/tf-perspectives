@@ -150,7 +150,7 @@ export default function ThreadBlock() {
 
     const tree = useMemo(() => buildTree(perspectives), [perspectives]);
     useEffect(() => {
-        router.reload({only: ['categories']});
+        router.reload({only: ['categories'], preserveScroll: true, preserveState: true});
     }, []);
 
     if (!tree) {

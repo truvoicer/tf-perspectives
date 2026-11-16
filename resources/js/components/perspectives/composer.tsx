@@ -120,7 +120,7 @@ export function Composer({
         if (Array.isArray(categories) && categories.length > 0) {
             return;
         }
-        router.reload({ only: ['categories'] });
+        router.reload({ only: ['categories'], preserveScroll: true, preserveState: true });
     }, []);
     return (
         <Form className="tf-composer" onSubmit={submit}>

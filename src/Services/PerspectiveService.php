@@ -339,7 +339,7 @@ class PerspectiveService
                 : $query->get();
         }
 
-        return $result->through(fn (Perspective $p) => $this->transform($p, $viewerId));
+        return $result->through(fn(Perspective $p) => $this->transform($p, $viewerId));
     }
 
     public function searchQuery(?User $user, ?array $filters = [])
@@ -357,14 +357,19 @@ class PerspectiveService
         if ($q !== '') {
             $query->where(function (Builder $inner) use ($q) {
                 $inner->where('body', 'like', "%{$q}%")
-                      ->orWhere('voice', 'like', "%{$q}%")
-                      ->orWhereHas('author', fn (Builder $a) => $a->where('name', 'like', "%{$q}%"))
-                      ->orWhereHas('tags', fn (Builder $t) => $t->where('name', 'like', "%{$q}%"));
+                    ->orWhere('voice', 'like', "%{$q}%")
+                    ->orWhereHas(
+                        'author',
+                        fn(Builder $a) => $a->where('first_name', 'like', "%{$q}%")
+                            ->orWhere('last_name', 'like', "%{$q}%")
+                            ->orWhere('display_name', 'like', "%{$q}%")
+                    )
+                    ->orWhereHas('tags', fn(Builder $t) => $t->where('name', 'like', "%{$q}%"));
             });
         }
 
         if ($tag !== '') {
-            $query->whereHas('tags', fn (Builder $t) => $t->where('name', $tag));
+            $query->whereHas('tags', fn(Builder $t) => $t->where('name', $tag));
         }
 
         if ($mood !== '') {
@@ -372,7 +377,7 @@ class PerspectiveService
         }
 
         if ($category !== '') {
-            $query->whereHas('category', fn (Builder $c) => $c->where('slug', $category));
+            $query->whereHas('category', fn(Builder $c) => $c->where('slug', $category));
         }
 
         match ($sort) {
@@ -383,7 +388,6 @@ class PerspectiveService
 
         $this->withCardRelations($query, $viewerId);
         return $query;
-
     }
 
     public function popularTags()
@@ -399,7 +403,7 @@ class PerspectiveService
                 : $query->get();
         }
 
-            return $result;
+        return $result;
     }
 
     public function popularTagsQuery()
@@ -408,5 +412,35 @@ class PerspectiveService
             ->withCount('perspectives')
             ->orderByDesc('perspectives_count')
             ->limit(12);
+    }
+
+    public function categoryPerspectives(PerspectiveCategory $category, ?User $user = null) {
+
+        $viewerId = $user?->id;
+        $query = $this->categoryPerspectivesQuery($category, $user);
+        if ($this->paginate) {
+            $result = $this->page
+                ? $query->paginate($this->perPage, ['*'], 'page', $this->page)->withQueryString()
+                : $query->paginate($this->perPage)->withQueryString();
+        } else {
+            $result = $this->limit
+                ? $query->limit($this->limit)->get()
+                : $query->get();
+        }
+
+        return $result->through(fn (Perspective $p) => $this->transform($p, $viewerId));
+    }
+
+    public function categoryPerspectivesQuery(PerspectiveCategory $category, ?User $user = null)
+    {
+        $viewerId = $user?->id;
+
+        $query = Perspective::query()
+            ->whereNull('parent_id')
+            ->where('perspective_category_id', $category->id)
+            ->latest('id');
+
+        $this->withCardRelations($query, $viewerId);
+        return $query;
     }
 }

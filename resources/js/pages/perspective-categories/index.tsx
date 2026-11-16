@@ -8,6 +8,7 @@ import { categoryIcon } from '../../lib/icons';
 import type { Category } from '../../types/perspectives';
 import { route } from 'ziggy-js';
 import { useEffect } from 'react';
+import BreadcrumbsBlock from '../../components/perspectives/blocks/breadcrumbs-block';
 
 interface CategoriesIndexProps {
     categories: Category[];
@@ -17,11 +18,13 @@ export default function CategoriesIndex() {
 
     const { categories } = usePage().props as unknown as { categories: Category[] };
     useEffect(() => {
-        router.reload({ only: ['categories'] });
+        router.reload({ only: ['categories'], preserveScroll: true, preserveState: true });
     }, []);
     return (
         <Layout>
             <div className="tf-panel">
+
+<BreadcrumbsBlock items={[{ label: 'Categories' }]} />
                 <h1 className="tf-page-title">
                     <FontAwesomeIcon icon={faLayerGroup} className="me-2" />
                     Categories

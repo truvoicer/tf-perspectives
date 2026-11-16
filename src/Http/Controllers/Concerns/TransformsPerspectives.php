@@ -13,7 +13,7 @@ trait TransformsPerspectives
      * Call sites should eager-load: author, category, tags, reactions, and
      * withCount children + bookmarks, plus the is_bookmarked exists-flag.
      */
-    protected function transform(Perspective $p, ?int $viewerId = null): array
+    public function transform(Perspective $p, ?int $viewerId = null): array
     {
         $viewerId ??= request()->user()?->id;
 
@@ -50,7 +50,7 @@ trait TransformsPerspectives
         ];
     }
 
-    protected function transformAuthor(User $user): array
+    public function transformAuthor(User $user): array
     {
         return [
             'id'         => $user->id,
@@ -61,7 +61,7 @@ trait TransformsPerspectives
         ];
     }
 
-    protected function transformPerspectiveCategory($category): array
+    public function transformPerspectiveCategory($category): array
     {
         return [
             'id'          => $category->id,
@@ -79,7 +79,7 @@ trait TransformsPerspectives
     /**
      * @return array{counts: array<string,int>, mine: string|null}
      */
-    protected function transformReactions(Perspective $p, ?int $viewerId): array
+    public function transformReactions(Perspective $p, ?int $viewerId): array
     {
         $counts = [
             'empathy' => 0,
@@ -107,7 +107,7 @@ trait TransformsPerspectives
     /**
      * Reusable eager-loading bundle for any query that will be transformed.
      */
-    protected function withCardRelations($query, ?int $viewerId): void
+    public function withCardRelations($query, ?int $viewerId): void
     {
         $query
             ->with([
@@ -128,7 +128,7 @@ trait TransformsPerspectives
     /**
      * Persist a comma-separated tag string onto a perspective.
      */
-    protected function syncTags(Perspective $perspective, ?string $raw): void
+    public function syncTags(Perspective $perspective, ?string $raw): void
     {
         if ($raw === null || $raw === '') {
             $perspective->tags()->sync([]);

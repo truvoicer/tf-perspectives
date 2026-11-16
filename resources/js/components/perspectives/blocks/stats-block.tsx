@@ -46,6 +46,7 @@ export default function StatsBlock({ stats: providedStats }: StatsBlockProps) {
         router.reload( {
             data: { stats_page: pageNumber },
             only: ['stats'], // Only fetch the stats prop to avoid reloading everything
+            preserveScroll: true, preserveState: true
         });
     };
 

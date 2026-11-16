@@ -8,6 +8,10 @@ export interface FeedOptionsBlock extends FetcherListStylingOptions, SharedBlock
 export interface ThreadOptionsBlock extends FetcherListStylingOptions, SharedBlockOptionsType {
 
 }
+
+export interface SearchOptionsBlock extends FetcherListStylingOptions, SharedBlockOptionsType {
+    show_search_results?: boolean;
+}
 export interface SharedPageSelectOptionsBlock  {
     search_page?: Page;
     search_results_page?: Page;

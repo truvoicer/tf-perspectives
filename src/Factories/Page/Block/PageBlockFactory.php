@@ -5,6 +5,7 @@ namespace Truvoicer\TfPerspectives\Factories\Page\Block;
 use Truvoicer\TruFetcherCore\Contracts\Page\Block\PageBlockInterface;
 use Truvoicer\TfPerspectives\Enums\Block\Block;
 use Truvoicer\TfPerspectives\Services\Page\Block\PerspectivesCategoryBlock;
+use Truvoicer\TfPerspectives\Services\Page\Block\PerspectivesBreadcrumbsBlock;
 use Truvoicer\TfPerspectives\Services\Page\Block\PerspectivesFeaturedBlock;
 use Truvoicer\TfPerspectives\Services\Page\Block\PerspectivesFeedBlock;
 use Truvoicer\TfPerspectives\Services\Page\Block\PerspectivesStatsBlock;
@@ -30,6 +31,7 @@ class PageBlockFactory extends BlockPageBlockFactory
             Block::PERSPECTIVES_FEATURED->value => app()->make(PerspectivesFeaturedBlock::class)->setData($data ?? []),
             Block::PERSPECTIVES_SEARCH->value => app()->make(PerspectivesSearchBlock::class)->setData($data ?? []),
             Block::PERSPECTIVES_SEARCH_RESULTS->value => app()->make(PerspectivesSearchResultsBlock::class)->setData($data ?? []),
+            Block::PERSPECTIVES_BREADCRUMBS->value => app()->make(PerspectivesBreadcrumbsBlock::class)->setData($data ?? []),
             default => parent::make($blockType, $data)
         };
     }

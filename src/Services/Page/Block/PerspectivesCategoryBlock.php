@@ -3,11 +3,16 @@
 namespace Truvoicer\TfPerspectives\Services\Page\Block;
 
 use Inertia\Inertia;
+use Truvoicer\TfPerspectives\Services\PerspectiveService;
 use Truvoicer\TruFetcherCore\Models\Page;
 use Truvoicer\TruFetcherCore\Models\PageColumnBlock;
 
 class PerspectivesCategoryBlock extends PerspectivesBlock
 {
+    public function __construct(
+        protected PerspectiveService $perspectiveService
+    ) {}
+
     public function inertiaDependencies(
         PageColumnBlock $block,
         Page $page,

@@ -17,6 +17,7 @@ enum Block: string
     case PERSPECTIVES_THREAD = 'perspectives_thread';
     case PERSPECTIVES_SEARCH = 'perspectives_search';
     case PERSPECTIVES_SEARCH_RESULTS = 'perspectives_search_results';
+    case PERSPECTIVES_BREADCRUMBS = 'perspectives_breadcrumbs';
 
     public function label(): string
     {
@@ -29,6 +30,7 @@ enum Block: string
             self::PERSPECTIVES_THREAD => 'Perspectives Thread',
             self::PERSPECTIVES_SEARCH => 'Perspectives Search',
             self::PERSPECTIVES_SEARCH_RESULTS => 'Perspectives Search Results',
+            self::PERSPECTIVES_BREADCRUMBS => 'Perspectives Breadcrumbs',
         };
     }
 
@@ -84,6 +86,7 @@ enum Block: string
                 'sort_by' => 'created_at',
                 'sort_order' => 'desc',
                 'id' => '',
+                'show_search_results' => false,
             ],
             self::PERSPECTIVES_SEARCH_RESULTS => [
                 'page_number' => 1,
@@ -92,45 +95,12 @@ enum Block: string
                 'sort_order' => 'desc',
                 'id' => '',
             ],
+            self::PERSPECTIVES_BREADCRUMBS => [
+                'id' => '',
+            ],
         };
 
         return [...$this->sharedSchema(), ...$schema];
-    }
-
-    /**
-     * Get the validation rules for styling fields
-     */
-    private function stylingValidationRules(): array
-    {
-        $colorRule = ['sometimes', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'];
-        $spacingRule = ['sometimes', 'string', 'regex:/^(\d+px)(\s+(\d+px)){0,3}$/'];
-        $shadowRule = ['sometimes', 'string', 'nullable'];
-
-        return [
-            // Background colors
-            'background_color' => $colorRule,
-            'light_background_color' => $colorRule,
-            'dark_background_color' => $colorRule,
-
-            // Border colors
-            'border_color' => $colorRule,
-            'light_border_color' => $colorRule,
-            'dark_border_color' => $colorRule,
-
-            // Border properties
-            'border_width' => ['sometimes', 'integer', 'min:0', 'max:20'],
-            'border_style' => ['sometimes', 'in:solid,dashed,dotted,double,groove,ridge,inset,outset,none'],
-            'border_radius' => ['sometimes', 'string', 'regex:/^(\d+px)(\s+(\d+px)){0,3}$/'],
-
-            // Box shadows
-            'box_shadow' => $shadowRule,
-            'light_box_shadow' => $shadowRule,
-            'dark_box_shadow' => $shadowRule,
-
-            // Spacing
-            'padding' => $spacingRule,
-            'margin' => $spacingRule,
-        ];
     }
 
     public function validationRules(): array
@@ -190,6 +160,7 @@ enum Block: string
                 'sort_by' => ['sometimes', 'string'],
                 'sort_order' => ['sometimes', 'in:asc,desc'],
                 'id' => ['sometimes', 'string'],
+                'show_search_results' => ['sometimes', 'boolean'],
                 ...$this->stylingValidationRules(),
             ],
             self::PERSPECTIVES_SEARCH_RESULTS => [
@@ -198,6 +169,9 @@ enum Block: string
                 'sort_by' => ['sometimes', 'string'],
                 'sort_order' => ['sometimes', 'in:asc,desc'],
                 'id' => ['sometimes', 'string'],
+                ...$this->stylingValidationRules(),
+            ],
+            self::PERSPECTIVES_BREADCRUMBS => [
                 ...$this->stylingValidationRules(),
             ],
         };
@@ -215,7 +189,8 @@ enum Block: string
             self::PERSPECTIVES_CATEGORY_THREAD => [],
             self::PERSPECTIVES_SEARCH,
             self::PERSPECTIVES_SEARCH_RESULTS => [],
-            self::PERSPECTIVES_CATEGORY => []
+            self::PERSPECTIVES_CATEGORY => [],
+            self::PERSPECTIVES_BREADCRUMBS => []
         };
     }
 
@@ -256,4 +231,41 @@ enum Block: string
             'category_thread_page' => ['sometimes', 'numeric', 'exists:pages,id'],
         ];
     }
+
+    /**
+     * Get the validation rules for styling fields
+     */
+    private function stylingValidationRules(): array
+    {
+        $colorRule = ['sometimes', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'];
+        $spacingRule = ['sometimes', 'string', 'regex:/^(\d+px)(\s+(\d+px)){0,3}$/'];
+        $shadowRule = ['sometimes', 'string', 'nullable'];
+
+        return [
+            // Background colors
+            'background_color' => $colorRule,
+            'light_background_color' => $colorRule,
+            'dark_background_color' => $colorRule,
+
+            // Border colors
+            'border_color' => $colorRule,
+            'light_border_color' => $colorRule,
+            'dark_border_color' => $colorRule,
+
+            // Border properties
+            'border_width' => ['sometimes', 'integer', 'min:0', 'max:20'],
+            'border_style' => ['sometimes', 'in:solid,dashed,dotted,double,groove,ridge,inset,outset,none'],
+            'border_radius' => ['sometimes', 'string', 'regex:/^(\d+px)(\s+(\d+px)){0,3}$/'],
+
+            // Box shadows
+            'box_shadow' => $shadowRule,
+            'light_box_shadow' => $shadowRule,
+            'dark_box_shadow' => $shadowRule,
+
+            // Spacing
+            'padding' => $spacingRule,
+            'margin' => $spacingRule,
+        ];
+    }
+
 }
