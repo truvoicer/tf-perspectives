@@ -68,14 +68,6 @@ export function PerspectiveCard({
         router.post(route('perspectives.bookmark.toggle', { perspective: perspective.id }), {}, { preserveScroll: true, preserveState: true });
     };
 
-    console.log({
-        categoryThreadPagePermalink,
-        threadPagePermalink,
-        feedPagePermalink,
-        categoriesPagePermalink,
-        searchPagePermalink,
-        searchResultsPagePermalink,
-    })
     return (
         <>
             <article className="tf-card">

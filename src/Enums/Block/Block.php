@@ -97,6 +97,7 @@ enum Block: string
             ],
             self::PERSPECTIVES_BREADCRUMBS => [
                 'id' => '',
+                'items' => [],
             ],
         };
 
@@ -172,6 +173,10 @@ enum Block: string
                 ...$this->stylingValidationRules(),
             ],
             self::PERSPECTIVES_BREADCRUMBS => [
+                'items' => ['sometimes', 'array'],
+                'items.*.label' => ['sometimes', 'string'],
+                'items.*.page_id' => ['sometimes', 'numeric', 'exists:pages,id'],
+                'items.*.icon' => ['sometimes', 'string'],
                 ...$this->stylingValidationRules(),
             ],
         };

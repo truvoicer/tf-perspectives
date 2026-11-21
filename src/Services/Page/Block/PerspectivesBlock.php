@@ -9,7 +9,7 @@ use Truvoicer\TruFetcherCore\Services\Page\Block\PageBlock;
 class PerspectivesBlock extends PageBlock
 {
 
-    protected function buildPermalinks(array $data, ?array $pageTypes = [
+    protected function buildPermalinks(?array $data = [], ?array $pageTypes = [
         'thread_page',
         'feed_page',
         'categories_page',
@@ -18,6 +18,9 @@ class PerspectivesBlock extends PageBlock
         'search_results_page',
     ]): array
     {
+        if (empty($data)) {
+            return [];
+        }
         $links = [];
         $parsePageTypes = $this->parsePageTypes($data, $pageTypes, 'model');
         foreach ($pageTypes as $key => $type) {

@@ -1,5 +1,5 @@
 // packages/truvoicer/tf-perspectives/resources/js/components/perspectives/breadcrumbs.tsx
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faHouse } from '@fortawesome/free-solid-svg-icons';
 import { Fragment } from 'react';
@@ -19,17 +19,15 @@ interface BreadcrumbsProps {
     className?: string;
 }
 
-export default function BreadcrumbsBlock({ items, showHome = true, className = '' }: BreadcrumbsProps) {
-    const allItems = showHome
-        ? [{ label: 'Home', href: route('perspectives.index'), icon: faHouse }, ...items]
-        : items;
+export default function BreadcrumbsBlock() {
+    const { items, showHome = true, className = '' } = usePage<{ items: BreadcrumbItem[]; showHome?: boolean; className?: string }>().props;
 
     return (
         <nav aria-label="breadcrumb" className={`mb-3 ${className}`}>
             {/* Removed .breadcrumb here to avoid Bootstrap's ::before pseudo-elements */}
             <ol className="list-unstyled d-flex flex-wrap align-items-center mb-0" style={{ fontSize: '14px' }}>
-                {allItems.map((item, index) => {
-                    const isLast = index === allItems.length - 1;
+                {Array.isArray(items) && items.map((item, index) => {
+                    const isLast = index === items.length - 1;
 
                     return (
                         <Fragment key={index}>

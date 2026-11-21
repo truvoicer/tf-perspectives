@@ -16,6 +16,37 @@ class PerspectivesBreadcrumbsBlock extends PerspectivesBlock
         protected PerspectiveService $perspectiveService
     ) {}
 
+    private function parseItems(array $data): array
+    {
+        if (empty($data['items']) || !is_array($data['items'])) {
+            return [];
+        }
+
+        // Collect all page IDs in one pass
+        $pageIds = collect($data['items'])
+            ->pluck('page_id')
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        // Fetch all pages in a single query, keyed by id
+        $pages = $pageIds->isEmpty()
+            ? collect()
+            : Page::whereIn('id', $pageIds)->get()->keyBy('id');
+
+        return array_map(
+            fn($item) => [
+                'label' => $item['label'] ?? '',
+                'href'  => !empty($item['page_id'])
+                    ? $pages->get((int) $item['page_id'])?->getPermalink()
+                    : null,
+                'icon'  => $item['icon'] ?? null,
+            ],
+            $data['items']
+        );
+    }
+
     public function inertiaDependencies(
         PageColumnBlock $block,
         Page $page,
@@ -30,6 +61,7 @@ class PerspectivesBreadcrumbsBlock extends PerspectivesBlock
                     return $user ? $this->userResource::make($user) : null;
                 }
             ),
+            'items' => $this->parseItems($data),
 
             ...$this->buildPermalinks($data),
         ];
@@ -42,10 +74,9 @@ class PerspectivesBreadcrumbsBlock extends PerspectivesBlock
         $user = $this->getUser();
         $data = $block->getData();
 
-        $data = $block->getData();
-
         return [
-            'user' => $user ? $this->userResource::make($user) : null,
+            'user'  => $user ? $this->userResource::make($user) : null,
+            'items' => $this->parseItems($data),
             ...$this->buildPermalinks($data),
         ];
     }
